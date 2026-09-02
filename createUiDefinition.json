@@ -380,9 +380,14 @@
                             "value": "IOT"
                         },
                         {
-                            "label": "Microsoft Insider Risk Management",
+                            "label": "Microsoft Purview Insider Risk Management",
                             "description": "This solution enables insider risk management teams to investigate risk-based behavior across 25+ Microsoft products. This solution is a better-together story between Microsoft Sentinel and Microsoft Purview Insider Risk Management.",
                             "value": "OfficeIRM"
+                        },
+                        {
+                            "label": "Microsoft Purview Information Protection",
+                            "description": "Ingests sensitivity-label auditing events from Microsoft Purview Information Protection (unified labeling clients and scanners) into Microsoft Sentinel for data-security monitoring.",
+                            "value": "MicrosoftPurviewInformationProtection"
                         },
                         {
                             "label": "Microsoft PowerBI",
