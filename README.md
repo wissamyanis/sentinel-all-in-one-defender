@@ -36,26 +36,28 @@ The following table summarizes the license, permissions and cost to enable each 
 
 | Data Connector | License | Permissions | Cost |
 | --- | --- | --- | --- |
-| Microsoft Entra ID | Any Entra ID license | Global Admin or Security Admin | Billed |
-| Microsoft Entra ID Protection | Entra ID Premium 2 | Global Admin or Security Admin | Free |
+| Microsoft Entra ID | Any Entra ID license | Global/Security Admin | Billed |
+| Microsoft Entra ID Protection | Entra ID Premium 2 | Global/Security Admin | Free |
 | Azure Activity | None | Subscription Reader | Free |
-| Dynamics 365 | D365 license | Global Admin or Security Admin | Billed |
-| Microsoft Defender XDR (includes Defender for Office 365) | M365 E5 / equivalent | Global Admin or Security Admin | Free |
+| Dynamics 365 | D365 license | Global/Security Admin | Billed |
+| Microsoft Defender XDR&nbsp;¹ | M365 E5 / equivalent | Global/Security Admin | Free |
 | Microsoft Defender for Cloud | Defender for Cloud | Security Reader | Free |
-| Microsoft Defender for Cloud Apps | Defender for Cloud Apps | Global Admin or Security Admin | Free |
-| Microsoft Defender for Identity | Defender for Identity | Global Admin or Security Admin | Free |
-| Microsoft Defender for Endpoint | Defender for Endpoint | Global Admin or Security Admin | Free |
+| Microsoft Defender for Cloud Apps | Defender for Cloud Apps | Global/Security Admin | Free |
+| Microsoft Defender for Identity | Defender for Identity | Global/Security Admin | Free |
+| Microsoft Defender for Endpoint | Defender for Endpoint | Global/Security Admin | Free |
 | Microsoft Defender for IoT | Defender for IoT | Contributor / Security Admin | Free |
-| Microsoft Purview Insider Risk Management | IRM license | Global Admin or Security Admin | Free |
-| Microsoft Power BI | Power BI license | Global Admin or Security Admin | Billed |
-| Microsoft Project | Project license | Global Admin or Security Admin | Billed |
-| Office 365 | None | Global Admin or Security Admin | Free |
-| Security Events via AMA (Windows) | None | Monitoring Contributor (for the DCR) | Billed |
-| Common Event Format (CEF) via AMA | None | Monitoring Contributor (for the DCR) | Billed |
-| Syslog via AMA (Linux) | None | Monitoring Contributor (for the DCR) | Billed |
-| Microsoft Defender Threat Intelligence | None | Global Admin or Security Admin | Free |
-| Premium Microsoft Defender Threat Intelligence | MDTI Premium | Global Admin or Security Admin | Billed |
-| Threat Intelligence Platforms (legacy) | None | Global Admin or Security Admin | Billed |
+| Microsoft Purview Insider Risk Management | IRM license | Global/Security Admin | Free |
+| Microsoft Power BI | Power BI license | Global/Security Admin | Billed |
+| Microsoft Project | Project license | Global/Security Admin | Billed |
+| Office 365 | None | Global/Security Admin | Free |
+| Security Events via AMA (Windows) | None | Monitoring Contributor | Billed |
+| Common Event Format (CEF) via AMA | None | Monitoring Contributor | Billed |
+| Syslog via AMA (Linux) | None | Monitoring Contributor | Billed |
+| Microsoft Defender Threat Intelligence | None | Global/Security Admin | Free |
+| Premium Microsoft Defender Threat Intelligence | MDTI Premium | Global/Security Admin | Billed |
+| Threat Intelligence Platforms (legacy) | None | Global/Security Admin | Billed |
+
+¹ Microsoft Defender XDR also carries Defender for Office 365 signal. "Global/Security Admin" means Global Administrator or Security Administrator. AMA-based connectors (Security Events, CEF, Syslog) create the Data Collection Rule only — you associate the agent/forwarder separately.
 
 ## What the template does
 
