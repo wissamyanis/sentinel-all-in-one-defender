@@ -455,12 +455,12 @@
                 "constraints": {
                     "allowedValues": [
                         {
-                            "label": "Azure Active Directory",
+                            "label": "Microsoft Entra ID",
                             "description": "Relevant license and Global Admin or Security Admin permission required.",
                             "value": "AzureActiveDirectory"
                         },
                         {
-                            "label": "Azure Active Directory Identity Protection",
+                            "label": "Microsoft Entra ID Protection",
                             "description": "Relevant license and Global Admin or Security Admin permission required.",
                             "value": "AzureActiveDirectoryIDP"
                         },
@@ -476,7 +476,7 @@
                         },
                         {
                             "label": "Microsoft Defender XDR (formerly Microsoft 365 Defender)",
-                            "description": "Streams Defender XDR incidents and alerts into Sentinel. Required for the unified Defender portal experience. This enables incident and alert synchronization only, no advanced hunting data. Relevant license and Global Admin or Security Admin permission required",
+                            "description": "Streams Defender XDR incidents and alerts into Sentinel, including signals from Defender for Office 365, Defender for Endpoint, Defender for Identity and Defender for Cloud Apps. Required for the unified Defender portal experience. Incident and alert synchronization only, no advanced hunting data. Relevant license and Global Admin or Security Admin permission required",
                             "value": "Microsoft365Defender"
                         },
                         {
@@ -500,12 +500,17 @@
                             "value": "MicrosoftDefenderAdvancedThreatProtection"
                         },
                         {
-                            "label": "Microsoft Insider Risk Management",
+                            "label": "Microsoft Defender for IoT",
+                            "description": "Streams alerts from Microsoft Defender for IoT for the selected subscription. Relevant license and Contributor/Security Admin permission required",
+                            "value": "IOT"
+                        },
+                        {
+                            "label": "Microsoft Purview Insider Risk Management",
                             "description": "Relevant license and Global Admin or Security Admin permission required",
                             "value": "OfficeIRM"
                         },
                         {
-                            "label": "Microsoft PowerBI",
+                            "label": "Microsoft Power BI",
                             "description": "Relevant license and Global Admin or Security Admin permission required",
                             "value": "OfficePowerBI"
                         },
