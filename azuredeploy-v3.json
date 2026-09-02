@@ -167,7 +167,7 @@
             "metadata": {
                 "description": "The location of resources"
             },
-            "defaultValue": "https://raw.githubusercontent.com/wissamyanis/sentinel-all-in-one-defender/main/ARMTemplates/"
+            "defaultValue": "https://raw.githubusercontent.com/wissamyanis/sentinel-all-in-one-defender/main/"
         },
         "subscriptionId": {
             "type": "string"
@@ -213,7 +213,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "[uri(parameters('_artifactsLocation'), 'v3/LinkedTemplates/workspace.json')]",
+                    "uri": "[uri(parameters('_artifactsLocation'), 'LinkedTemplates/workspace.json')]",
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
@@ -259,7 +259,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "[uri(parameters('_artifactsLocation'), 'v3/LinkedTemplates/settings.json')]",
+                    "uri": "[uri(parameters('_artifactsLocation'), 'LinkedTemplates/settings.json')]",
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
@@ -291,7 +291,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "[uri(parameters('_artifactsLocation'), 'v3/LinkedTemplates/solutions.json')]",
+                    "uri": "[uri(parameters('_artifactsLocation'), 'LinkedTemplates/solutions.json')]",
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
@@ -321,7 +321,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "[uri(parameters('_artifactsLocation'), 'v3/LinkedTemplates/dataConnectors.json')]",
+                    "uri": "[uri(parameters('_artifactsLocation'), 'LinkedTemplates/dataConnectors.json')]",
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
@@ -357,7 +357,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "[uri(parameters('_artifactsLocation'), 'v3/LinkedTemplates/dataCollectionRules.json')]",
+                    "uri": "[uri(parameters('_artifactsLocation'), 'LinkedTemplates/dataCollectionRules.json')]",
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
@@ -389,7 +389,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "[uri(parameters('_artifactsLocation'), 'v3/LinkedTemplates/alertRules.json')]",
+                    "uri": "[uri(parameters('_artifactsLocation'), 'LinkedTemplates/alertRules.json')]",
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
@@ -421,7 +421,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "[uri(parameters('_artifactsLocation'), 'v3/LinkedTemplates/scheduledAlerts.json')]",
+                    "uri": "[uri(parameters('_artifactsLocation'), 'LinkedTemplates/scheduledAlerts.json')]",
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {

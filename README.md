@@ -1,143 +1,44 @@
-# Azure Sentinel All In One
+﻿# Sentinel All-in-One (Defender portal edition)
 
 ![logo](./media/Sentinel21Logo.PNG)
 
-> **Note:** This is a personal copy of [Javier Soriano's Sentinel All-in-One](https://github.com/javiersoriano/sentinel-all-in-one), extended with support for the unified Microsoft Defender portal — modern data connectors (Microsoft Defender Threat Intelligence, Premium MDTI), Windows Security Events via AMA/Data Collection Rules, and a Defender portal onboarding helper. All original authorship and credit belong to Javier Soriano. See `ARMTemplates/v3/README.md` for details of the Defender-era changes.
+> Personal copy of [Javier Soriano's Sentinel All-in-One](https://github.com/javiersoriano/sentinel-all-in-one), extended for the unified **Microsoft Defender portal**. All original authorship and credit belong to Javier Soriano.
 
-‼‼**We have moved this project to Azure Sentinel's official GitHub repository here**: [https://github.com/Azure/Azure-Sentinel/tree/master/Tools/Sentinel-All-In-One](https://github.com/Azure/Azure-Sentinel/tree/master/Tools/Sentinel-All-In-One) ‼‼
+This template speeds up standing up a Microsoft Sentinel environment (Log Analytics workspace + Sentinel + Content Hub solutions + data connectors + analytics rules), updated for the Defender-portal era.
 
+## What is new in this edition
 
-===================================================================================================================================================================
+- Data connector API versions bumped to GA `2025-09-01`
+- New connectors: **Microsoft Defender Threat Intelligence** and **Premium MDTI**
+- "Microsoft 365 Defender" relabeled **Microsoft Defender XDR**
+- **Windows Security Events via AMA** using a Data Collection Rule (All / Common / Minimal sets)
+- `Scripts/Connect-DefenderPortal.ps1` to verify readiness and guide Defender portal onboarding
+- Optional modern subscription-scope **AzureActivity** connector
 
-Azure Sentinel All in One is a project that seeks to speed up deployment and initial configuration tasks of an Azure Sentinel environment. This is ideal for Proof of Concept scenarios and connector onboarding when highly privileged users are needed.
+Full details: see [DEFENDER-CHANGES.md](./DEFENDER-CHANGES.md).
 
-There's two versions of Sentinel All-In-One: **Powershell script** and **ARM template**. There's slight differences on what things get automated with each. We try to summarize them here:
+## Deploy
 
-| All-In-One version                                 | Data Connectors         |  Analytics Rules  |
-| -------------------------------------------------- | ----------------------- |-------------------|
-| Powershell script                                  | Azure Activity, Azure Security Center, Azure Active Directory, Azure Active Directory Identity Protection, Office 365, Microsoft Cloud App Security, Azure Advanced Threat Protection, Microsoft Defender Advanced ThreatProtection, Threat Intelligence Platforms | Microsoft Incident Creation rules |
-| ARM template                                       | Azure Activity, Azure Security Center, Azure Active Directory Identity Protection, Office 365, Microsoft Cloud App Security, Azure Advanced Threat Protection, Microsoft Defender Advanced ThreatProtection, Security Events, DNS (Preview), Windows Firewall     | Microsoft Incident Creation, Fusion, ML Behavior Analytics, Scheduled      |
+> The Deploy to Azure button requires this repository to be **Public** (the Azure portal fetches the templates from raw.githubusercontent.com).
 
-## Prerequisites
+[![Deploy To Azure](https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/1-CONTRIBUTION-GUIDE/images/deploytoazure.svg?sanitize=true)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fwissamyanis%2Fsentinel-all-in-one-defender%2Fmain%2Fazuredeploy-v3.json/createUIDefinitionUri/https%3A%2F%2Fraw.githubusercontent.com%2Fwissamyanis%2Fsentinel-all-in-one-defender%2Fmain%2FcreateUiDefinition.json)
 
-- Azure user account with enough permissions to enable the required connectors. See table below for additional permissions. Write permissions to the workspace are **always** needed.
-- Some data connectors also require a license to be present in order to be enabled. See table below.
-- [PowerShell Core](https://github.com/PowerShell/PowerShell) needs to be installed ONLY if using Powershell version
-- Threat Intelligence Platforms connector requires additional setup documented [here](https://docs.microsoft.com/en-us/azure/sentinel/connect-threat-intelligence#connect-azure-sentinel-to-your-threat-intelligence-platform)
+### Deploy from the CLI
 
-The following table summarizes permissions, licenses and permissions needed and related cost to enable each Data Connector:
+```powershell
+az deployment group create `
+  --resource-group "<rg-with-your-workspace>" `
+  --template-file "LinkedTemplates/dataCollectionRules.json" `
+  --parameters workspaceName="<your-workspace>" dataConnectorsKind='["SecurityEvents"]' securityEventSet="Common"
+```
 
-| Data Connector                                 | License         |  Permissions                    | Cost      |
-| ---------------------------------------------- | --------------- |---------------------------------|-----------|
-| Azure Activity                                 | None            | Subscription Reader             | Free      |
-| Azure Security Center                          | ASC Standard    | Security Reader                 | Free      |
-| Azure Active Directory                         | Any AAD license | Global Admin or Security Admin  | Billed    |
-| Azure Active Directory Identity Protection     | AAD Premium 2   | Global Admin or Security Admin  | Free      |
-| Office 365                                     | None            | Global Admin or Security Admin  | Free      |
-| Microsoft Cloud App Security                   | MCAS            | Global Admin or Security Admin  | Free      |
-| Azure Advanced Threat Protection               | AATP            | Global Admin or Security Admin  | Free      |
-| Microsoft Defender Advanced Threat Protection  | MDATP           | Global Admin or Security Admin  | Free      |
-| Threat Intelligence Platforms                  | None            | Global Admin or Security Admin  | Billed    |
-| Security Events                                | None            | None                            | Billed    |
-| Linux Syslog                                   | None            | None                            | Billed    |
-| DNS (preview)                                  | None            | None                            | Billed    |
-| Windows Firewall                               | None            | None                            | Billed    |
+## Repository layout
 
-## ARM template instructions
-
-The template performs the following tasks:
-
-- Creates resource group (if given resource group doesn't exist yet)
-- Creates Log Analytics workspace (if given workspace doesn't exist yet)
-- Installs Azure Sentinel on top of the workspace (if not installed yet)
-- Enables selected Data Connectors from tihs list: 
-    + Azure Activity
-    + Azure Security Center
-    + Azure Active Directory Identity Protection
-    + Office 365 (Sharepoint, Exchange and Teams)
-    + Microsoft Cloud App Security
-    + Azure Advanced Threat Protection
-    + Microsoft Defender Advanced Threat Protection
-    + Security Events
-    + Linux Syslog
-    + DNS (Preview)
-    + Windows Firewall
-- Enables analytics rules for selected Microsoft 1st party products 
-- Enables Fusion rule and ML Behavior Analytics rules for RDP or SSH (if Security Events or Syslog data sources are selected)
-- Enables Scheduled analytics rules that apply to all the enabled connectors 
-
-It takes around **10 minutes** to deploy.
-
-In order to create the Scheduled analytics rules, the deployment template uses an [ARM deployment script](https://docs.microsoft.com/en-us/azure/azure-resource-manager/templates/deployment-script-template) which requires a [user assigned identity](https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview). You will see this resource in your resource group when the deployment finishes. You can remove after depployment if desired.
-
-### Try it now
-
-[![Deploy To Azure](https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/1-CONTRIBUTION-GUIDE/images/deploytoazure.svg?sanitize=true)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fjaviersoriano%2Fsentinel-all-in-one%2Fmaster%2FARMTemplates%2Fazuredeploy.json/createUIDefinitionUri/https%3A%2F%2Fraw.githubusercontent.com%2Fjaviersoriano%2Fsentinel-all-in-one%2Fmaster%2FARMTemplates%2FcreateUiDefinition.json)
-
-
-## Powershell script Instructions
-
-The Powershell script in this folder (*SentinelallInOne.ps1*) takes care of the following steps:
-
-- Creates resource group (if given resource group doesn't exist yet)
-- Creates Log Analytics workspace (if given workspace doesn't exist yet)
-- Installs Azure Sentinel on top of the workspace (if not installed yet)
-- Enables the following Data Connectors: 
-    + Azure Activity
-    + Azure Security Center
-    + Azure Active Directory
-    + Azure Active Directory Identity Protection
-    + Office 365 (Sharepoint, Exchange and Teams)
-    + Microsoft Cloud App Security
-    + Azure Advanced Threat Protection
-    + Microsoft Defender Advanced Threat Protection
-    + Threat Intelligence Platforms
-- Enables Analytics Rules for enabled Microsoft 1st party products 
-
-### Getting started
-These instructions will show you what you need to now to use Sentinel All in One.
-
-#### Prerequisites
-
-- [PowerShell Core](https://github.com/PowerShell/PowerShell)
-- Azure user account with enough permissions to enable the required connectors. See table below.
-- Some data connectors also require a license to be present in order to be enabled. See table below.
-- Threat Intelligence Platforms connector requires additional setup documented [here](https://docs.microsoft.com/en-us/azure/sentinel/connect-threat-intelligence#connect-azure-sentinel-to-your-threat-intelligence-platform)
-
-The following table summarizes permissions, licenses needed and cost to enable each Data Connector:
-
-| Data Connector                                 | License         |  Permissions                   | Cost      |
-| ---------------------------------------------- | --------------- |--------------------------------|-----------|
-| Azure Activity                                 | None            |Reader                          | Free      |
-| Azure Security Center                          | ASC Standard    |Security Reader                 | Free      |
-| Azure Active Directory                         | Any AAD license |Global Admin or Security Admin  | Billed    |
-| Azure Active Directory Identity Protection     | AAD Premium 2   |Global Admin or Security Admin  | Free      |
-| Office 365                                     | None            |Global Admin or Security Admin  | Free      |
-| Microsoft Cloud App Security                   | MCAS            |Global Admin or Security Admin  | Free      |
-| Azure Advanced Threat Protection               | AATP            |Global Admin or Security Admin  | Free      |
-| Microsoft Defender Advanced Threat Protection  | MDATP           |Global Admin or Security Admin  | Free      |
-| Threat Intelligence Platforms                  | None            |Global Admin or Security Admin  | Billed    |
-
-#### Usage
-
-Once you have PowerShell Core installed on your machine, you just need two files from this repo: 
-
-* *connectors.json* - contains all the connectors that will be enabled. If you don't want some of the connectors to be enabled, just remove them from the your copy of the file.
-
-* *SentinelAllInOne.ps1* - script that automates all the steps outlined above.
-
-The script uses your current Azure context, if you want to change the subscription you want to use, make sure you do that before executing the script. You can use `Connect-AzAccount -SubscriptionId <subscription_id>`  to do that
-
-Open a PowerShell core terminal, navigate to the folder where these two files are located and execute *SentinelAllInOne.ps1*. You will be asked to enter the following parameters:
-
- - **Resource Group** - Resource Group that will contain the Azure Sentinel environment. If the provided resource group already exists, the script will skip its creation.
- - **Workspace** - Name of the Azure Sentinel workspace. If it already exists, the script will skip its creation.
- - **Location** - Location for the resource group and Azure Sentinel workspace.
-
-If not logged in already, the script will ask you to log in to your Azure account. Make sure you have the right permissions to enable the connectors specified in *connectors.json* file.
-
-The script will then iterate through the connectors specified in the *connectors.json* file and enable them. It will also enable the corresponding Microsoft analytics rules.
-
-Here you have a GIF that shows the execution process:
-
-![demo](./media/SentinelAllInOne.gif)
+```
+azuredeploy-v3.json          Main deployment template (entry point)
+createUiDefinition.json      Portal wizard UI
+DEFENDER-CHANGES.md          Details of the Defender-era changes
+LinkedTemplates/             Workspace, settings, solutions, connectors, DCR, rules
+Scripts/                     Connect-DefenderPortal.ps1, EnableRules.ps1
+media/                       Logo and demo assets
+```
