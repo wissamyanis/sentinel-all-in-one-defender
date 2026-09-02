@@ -167,7 +167,7 @@
             "metadata": {
                 "description": "The location of resources"
             },
-            "defaultValue": "https://raw.githubusercontent.com/YOUR-GITHUB-USERNAME/sentinel-all-in-one/master/ARMTemplates/"
+            "defaultValue": "https://raw.githubusercontent.com/wissamyanis/sentinel-all-in-one-defender/main/ARMTemplates/"
         },
         "subscriptionId": {
             "type": "string"

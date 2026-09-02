@@ -2,6 +2,8 @@
 
 ![logo](./media/Sentinel21Logo.PNG)
 
+> **Note:** This is a personal copy of [Javier Soriano's Sentinel All-in-One](https://github.com/javiersoriano/sentinel-all-in-one), extended with support for the unified Microsoft Defender portal — modern data connectors (Microsoft Defender Threat Intelligence, Premium MDTI), Windows Security Events via AMA/Data Collection Rules, and a Defender portal onboarding helper. All original authorship and credit belong to Javier Soriano. See `ARMTemplates/v3/README.md` for details of the Defender-era changes.
+
 ‼‼**We have moved this project to Azure Sentinel's official GitHub repository here**: [https://github.com/Azure/Azure-Sentinel/tree/master/Tools/Sentinel-All-In-One](https://github.com/Azure/Azure-Sentinel/tree/master/Tools/Sentinel-All-In-One) ‼‼
 
 
