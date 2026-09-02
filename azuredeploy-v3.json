@@ -361,6 +361,36 @@
             }
         },
         {
+            "condition": "[or(contains(parameters('enableDataConnectors'), 'CEFViaAMA'), contains(parameters('enableDataConnectors'), 'SyslogViaAMA'))]",
+            "name": "enableCEFSyslogDCR",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "subscriptionId": "[parameters('subscriptionId')]",
+            "resourceGroup": "[parameters('rgName')]",
+            "dependsOn": [
+                "workspaceCreation",
+                "enableDataConnectors"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[uri(parameters('_artifactsLocation'), 'LinkedTemplates/dataCollectionRules-CEF.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "dataConnectorsKind": {
+                        "value": "[parameters('enableDataConnectors')]"
+                    },
+                    "workspaceName": {
+                        "value": "[parameters('workspaceName')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    }
+                }
+            }
+        },
+        {
             "condition": "[parameters('enableMLAlerts')]",
             "name": "enableAlerts",
             "type": "Microsoft.Resources/deployments",

@@ -530,6 +530,16 @@
                             "value": "SecurityEvents"
                         },
                         {
+                            "label": "Common Event Format (CEF) via AMA",
+                            "description": "Deploys a Data Collection Rule to collect CEF messages (firewalls and security appliances, e.g. Palo Alto) via a Linux log forwarder running the Azure Monitor Agent. You must deploy and associate the forwarder VM separately.",
+                            "value": "CEFViaAMA"
+                        },
+                        {
+                            "label": "Syslog via AMA (Linux)",
+                            "description": "Deploys a Data Collection Rule to collect Linux Syslog messages via the Azure Monitor Agent. You must install and associate AMA on the source/forwarder machines separately.",
+                            "value": "SyslogViaAMA"
+                        },
+                        {
                             "label": "Threat Intelligence Platforms (legacy)",
                             "description": "Legacy TAXII/Graph threat indicators connector. For new deployments prefer Microsoft Defender Threat Intelligence below. Global Admin or Security Admin permission required",
                             "value": "ThreatIntelligence"
