@@ -47,7 +47,10 @@
         "aadipName": "[concat('aadip', uniqueString(resourceGroup().id))]",
         "tiName": "[concat('ti', uniqueString(resourceGroup().id))]",
         "mstiName": "[concat('msti', uniqueString(resourceGroup().id))]",
-        "premiumMdtiName": "[concat('premiumMdti', uniqueString(resourceGroup().id))]"
+        "premiumMdtiName": "[concat('premiumMdti', uniqueString(resourceGroup().id))]",
+        "mcasName": "[concat('mcas', uniqueString(resourceGroup().id))]",
+        "aatpName": "[concat('aatp', uniqueString(resourceGroup().id))]",
+        "mdatpName": "[concat('mdatp', uniqueString(resourceGroup().id))]"
     },
     "resources": [
         {
@@ -118,7 +121,7 @@
         {
             "condition": "[contains(parameters('dataConnectorsKind'), 'Microsoft365Defender')]",
             "type": "Microsoft.OperationalInsights/workspaces/providers/dataConnectors",
-            "apiVersion": "2025-09-01",
+            "apiVersion": "2022-12-01-preview",
             "location": "[parameters('location')]",
             "name": "[concat(parameters('workspaceName'),'/Microsoft.SecurityInsights/',variables('m365dName'))]",
             "kind": "MicrosoftThreatProtection",
@@ -134,7 +137,7 @@
         {
             "condition": "[contains(parameters('dataConnectorsKind'), 'Dynamics365')]",
             "type": "Microsoft.OperationalInsights/workspaces/providers/dataConnectors",
-            "apiVersion": "2025-09-01",
+            "apiVersion": "2022-12-01-preview",
             "location": "[parameters('location')]",
             "name": "[concat(parameters('workspaceName'),'/Microsoft.SecurityInsights/',variables('d365Name'))]",
             "kind": "Dynamics365",
@@ -150,7 +153,7 @@
         {
             "condition": "[contains(parameters('dataConnectorsKind'), 'IOT')]",
             "type": "Microsoft.OperationalInsights/workspaces/providers/dataConnectors",
-            "apiVersion": "2025-09-01",
+            "apiVersion": "2022-12-01-preview",
             "location": "[parameters('location')]",
             "name": "[concat(parameters('workspaceName'),'/Microsoft.SecurityInsights/',variables('iotName'))]",
             "kind": "IOT",
@@ -166,7 +169,7 @@
         {
             "condition": "[contains(parameters('dataConnectorsKind'), 'Office365Project')]",
             "type": "Microsoft.OperationalInsights/workspaces/providers/dataConnectors",
-            "apiVersion": "2025-09-01",
+            "apiVersion": "2022-12-01-preview",
             "location": "[parameters('location')]",
             "name": "[concat(parameters('workspaceName'),'/Microsoft.SecurityInsights/',variables('projectName'))]",
             "kind": "Office365Project",
@@ -182,7 +185,7 @@
         {
             "condition": "[contains(parameters('dataConnectorsKind'), 'OfficeIRM')]",
             "type": "Microsoft.OperationalInsights/workspaces/providers/dataConnectors",
-            "apiVersion": "2025-09-01",
+            "apiVersion": "2022-12-01-preview",
             "location": "[parameters('location')]",
             "name": "[concat(parameters('workspaceName'),'/Microsoft.SecurityInsights/',variables('irmName'))]",
             "kind": "OfficeIRM",
@@ -198,7 +201,7 @@
         {
             "condition": "[contains(parameters('dataConnectorsKind'), 'PowerBI')]",
             "type": "Microsoft.OperationalInsights/workspaces/providers/dataConnectors",
-            "apiVersion": "2025-09-01",
+            "apiVersion": "2022-12-01-preview",
             "location": "[parameters('location')]",
             "name": "[concat(parameters('workspaceName'),'/Microsoft.SecurityInsights/',variables('powerbiName'))]",
             "kind": "OfficePowerBI",
@@ -256,6 +259,57 @@
                 "lookbackPeriod": "1970-01-01T00:00:00.000Z",
                 "dataTypes": {
                     "connector": {
+                        "state": "enabled"
+                    }
+                }
+            }
+        },
+        {
+            "condition": "[contains(parameters('dataConnectorsKind'), 'MicrosoftCloudAppSecurity')]",
+            "type": "Microsoft.OperationalInsights/workspaces/providers/dataConnectors",
+            "apiVersion": "2025-09-01",
+            "location": "[parameters('location')]",
+            "name": "[concat(parameters('workspaceName'),'/Microsoft.SecurityInsights/',variables('mcasName'))]",
+            "kind": "MicrosoftCloudAppSecurity",
+            "properties": {
+                "tenantId": "[parameters('tenantId')]",
+                "dataTypes": {
+                    "alerts": {
+                        "state": "enabled"
+                    },
+                    "discoveryLogs": {
+                        "state": "enabled"
+                    }
+                }
+            }
+        },
+        {
+            "condition": "[contains(parameters('dataConnectorsKind'), 'AzureAdvancedThreatProtection')]",
+            "type": "Microsoft.OperationalInsights/workspaces/providers/dataConnectors",
+            "apiVersion": "2025-09-01",
+            "location": "[parameters('location')]",
+            "name": "[concat(parameters('workspaceName'),'/Microsoft.SecurityInsights/',variables('aatpName'))]",
+            "kind": "AzureAdvancedThreatProtection",
+            "properties": {
+                "tenantId": "[parameters('tenantId')]",
+                "dataTypes": {
+                    "alerts": {
+                        "state": "enabled"
+                    }
+                }
+            }
+        },
+        {
+            "condition": "[contains(parameters('dataConnectorsKind'), 'MicrosoftDefenderAdvancedThreatProtection')]",
+            "type": "Microsoft.OperationalInsights/workspaces/providers/dataConnectors",
+            "apiVersion": "2025-09-01",
+            "location": "[parameters('location')]",
+            "name": "[concat(parameters('workspaceName'),'/Microsoft.SecurityInsights/',variables('mdatpName'))]",
+            "kind": "MicrosoftDefenderAdvancedThreatProtection",
+            "properties": {
+                "tenantId": "[parameters('tenantId')]",
+                "dataTypes": {
+                    "alerts": {
                         "state": "enabled"
                     }
                 }

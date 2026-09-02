@@ -485,6 +485,21 @@
                             "value": "MicrosoftDefenderForCloud"
                         },
                         {
+                            "label": "Microsoft Defender for Cloud Apps",
+                            "description": "Streams alerts and Cloud Discovery logs from Defender for Cloud Apps (MCAS). Relevant license and Global Admin or Security Admin permission required",
+                            "value": "MicrosoftCloudAppSecurity"
+                        },
+                        {
+                            "label": "Microsoft Defender for Identity",
+                            "description": "Streams alerts from Defender for Identity (AATP). Relevant license and Global Admin or Security Admin permission required",
+                            "value": "AzureAdvancedThreatProtection"
+                        },
+                        {
+                            "label": "Microsoft Defender for Endpoint",
+                            "description": "Streams alerts from Defender for Endpoint (MDATP). Relevant license and Global Admin or Security Admin permission required",
+                            "value": "MicrosoftDefenderAdvancedThreatProtection"
+                        },
+                        {
                             "label": "Microsoft Insider Risk Management",
                             "description": "Relevant license and Global Admin or Security Admin permission required",
                             "value": "OfficeIRM"
