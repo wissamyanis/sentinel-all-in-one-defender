@@ -343,8 +343,8 @@
                 "constraints": {
                     "allowedValues": [
                         {
-                            "label": "Azure Active Directory",
-                            "description": "The Azure Active Directory solution for Microsoft Sentinel enables you to ingest Azure Active Directory Audit,Sign-in,Provisioning,Risk Events and Risky User/Service Principal logs using Diagnostic Settings into Microsoft Sentinel.",
+                            "label": "Microsoft Entra ID",
+                            "description": "The Microsoft Entra ID solution for Microsoft Sentinel enables you to ingest Microsoft Entra ID Audit, Sign-in, Provisioning, Risk Events and Risky User/Service Principal logs using Diagnostic Settings into Microsoft Sentinel.",
                             "value": "AzureActiveDirectory"
                         },
                         {
@@ -403,8 +403,8 @@
                             "value": "MicrosoftPurviewInformationProtection"
                         },
                         {
-                            "label": "Microsoft PowerBI",
-                            "description": "The Microsoft PowerBI solution enables you to track user activities in your PowerBI environment.",
+                            "label": "Microsoft Power BI",
+                            "description": "The Microsoft Power BI solution enables you to track user activities in your Power BI environment.",
                             "value": "OfficePowerBI"
                         },
                         {
