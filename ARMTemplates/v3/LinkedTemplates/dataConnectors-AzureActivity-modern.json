@@ -1,0 +1,43 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-08-01/subscriptionDeploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "metadata": {
+        "comments": "MODERN AzureActivity connector (Defender-era). Deploys a subscription-scope diagnostic setting that streams the Azure Activity Log to the Log Analytics workspace, replacing the legacy Microsoft.OperationalInsights/workspaces/dataSources (AzureActivityLog) approach. This is a SUBSCRIPTION-SCOPE deployment. Invoke it from the parent with a subscription-scoped nested deployment (no resourceGroup). Validate in a sandbox before swapping it into the main flow."
+    },
+    "parameters": {
+        "dataConnectorsKind": {
+            "type": "array",
+            "defaultValue": [],
+            "metadata": {
+                "description": "The kind of data connectors to enable. This template acts when it contains 'AzureActivity'."
+            }
+        },
+        "workspaceResourceId": {
+            "type": "string",
+            "metadata": {
+                "description": "Full resource ID of the Log Analytics workspace that receives the Activity Log, e.g. /subscriptions/<sub>/resourceGroups/<rg>/providers/Microsoft.OperationalInsights/workspaces/<ws>."
+            }
+        }
+    },
+    "resources": [
+        {
+            "condition": "[contains(parameters('dataConnectorsKind'), 'AzureActivity')]",
+            "type": "Microsoft.Insights/diagnosticSettings",
+            "apiVersion": "2021-05-01-preview",
+            "name": "sentinel-activitylog",
+            "properties": {
+                "workspaceId": "[parameters('workspaceResourceId')]",
+                "logs": [
+                    { "category": "Administrative", "enabled": true },
+                    { "category": "Security", "enabled": true },
+                    { "category": "ServiceHealth", "enabled": true },
+                    { "category": "Alert", "enabled": true },
+                    { "category": "Recommendation", "enabled": true },
+                    { "category": "Policy", "enabled": true },
+                    { "category": "Autoscale", "enabled": true },
+                    { "category": "ResourceHealth", "enabled": true }
+                ]
+            }
+        }
+    ]
+}
