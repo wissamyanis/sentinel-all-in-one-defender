@@ -326,6 +326,19 @@
                 "filterPlaceholder": "Filter items ...",
                 "multiLine": true,
                 "defaultDescription": "A value for selection",
+                "defaultValue": [
+                    {"value": "AzureActiveDirectory"},
+                    {"value": "AzureActivity"},
+                    {"value": "Microsoft365"},
+                    {"value": "MicrosoftDefenderForCloud"},
+                    {"value": "MicrosoftDefenderForEndpoint"},
+                    {"value": "SecurityThreatEssentials"},
+                    {"value": "CloudIdentityThreatProtectionEssentials"},
+                    {"value": "EndpointThreatProtectionEssentials"},
+                    {"value": "SOAREssentials"},
+                    {"value": "UEBAEssentials"},
+                    {"value": "ThreatIntelligence"}
+                ],
                 "toolTip": "Select the solutions that you would like to install",
                 "constraints": {
                     "allowedValues": [
