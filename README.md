@@ -1,6 +1,6 @@
-﻿# Sentinel All-in-One (Defender portal edition)
+﻿# Sentinel Accelerated All-in-One
 
-![logo](./media/Sentinel21Logo.PNG)
+![Sentinel Accelerated All-in-One](./media/SentinelAcceleratedLogo.png)
 
 > Personal copy of [Javier Soriano's Sentinel All-in-One](https://github.com/javiersoriano/sentinel-all-in-one), extended for the unified **Microsoft Defender portal**. All original authorship and credit belong to Javier Soriano.
 
