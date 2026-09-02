@@ -12,10 +12,15 @@ Microsoft Sentinel is still deployed on Azure (a Log Analytics workspace with Se
 
 ## What is new in this edition
 
-- Data connector API versions bumped to GA `2025-09-01`
-- New connectors: **Microsoft Defender Threat Intelligence** and **Premium MDTI** (replacing the deprecated Threat Intelligence Platforms connector for new deployments)
-- "Microsoft 365 Defender" relabeled **Microsoft Defender XDR** (the central connector for the unified portal)
+- Data connector API versions updated to GA `2025-09-01` where supported (non-GA kinds pinned to their supported API)
+- Added the full Microsoft Defender connector family: **Defender for Cloud Apps**, **Defender for Identity**, **Defender for Endpoint**, and exposed **Defender for IoT**
+- New threat-intel connectors: **Microsoft Defender Threat Intelligence** and **Premium MDTI** (replacing the deprecated Threat Intelligence Platforms connector for new deployments)
+- "Microsoft 365 Defender" relabeled **Microsoft Defender XDR** (the central connector for the unified portal; also carries Defender for Office 365 signal)
 - **Windows Security Events via AMA** using a Data Collection Rule (All / Common / Minimal event sets) — the modern replacement for the retired Log Analytics agent (MMA/OMS)
+- **CEF and Syslog via AMA** Data Collection Rules for firewalls and appliances (e.g. Palo Alto)
+- **Microsoft Purview Information Protection** added to the Content Hub solutions
+- Connector and solution labels updated to current product names (Microsoft Entra ID, Purview, Power BI)
+- Recommended Defender-portal connectors and a curated core set of Content Hub solutions are pre-selected by default
 - Optional modern subscription-scope **Azure Activity** connector (diagnostic-setting based)
 - `Scripts/Connect-DefenderPortal.ps1` to verify readiness and guide Defender portal onboarding
 
@@ -31,17 +36,23 @@ The following table summarizes the license, permissions and cost to enable each 
 
 | Data Connector | License | Permissions | Cost |
 | --- | --- | --- | --- |
-| Azure Active Directory | Any Entra ID license | Global Admin or Security Admin | Billed |
-| Azure Active Directory Identity Protection | Entra ID Premium 2 | Global Admin or Security Admin | Free |
+| Microsoft Entra ID | Any Entra ID license | Global Admin or Security Admin | Billed |
+| Microsoft Entra ID Protection | Entra ID Premium 2 | Global Admin or Security Admin | Free |
 | Azure Activity | None | Subscription Reader | Free |
 | Dynamics 365 | D365 license | Global Admin or Security Admin | Billed |
-| Microsoft Defender XDR | M365 E5 / equivalent | Global Admin or Security Admin | Free |
+| Microsoft Defender XDR (includes Defender for Office 365) | M365 E5 / equivalent | Global Admin or Security Admin | Free |
 | Microsoft Defender for Cloud | Defender for Cloud | Security Reader | Free |
-| Microsoft Insider Risk Management | IRM license | Global Admin or Security Admin | Free |
+| Microsoft Defender for Cloud Apps | Defender for Cloud Apps | Global Admin or Security Admin | Free |
+| Microsoft Defender for Identity | Defender for Identity | Global Admin or Security Admin | Free |
+| Microsoft Defender for Endpoint | Defender for Endpoint | Global Admin or Security Admin | Free |
+| Microsoft Defender for IoT | Defender for IoT | Contributor / Security Admin | Free |
+| Microsoft Purview Insider Risk Management | IRM license | Global Admin or Security Admin | Free |
 | Microsoft Power BI | Power BI license | Global Admin or Security Admin | Billed |
 | Microsoft Project | Project license | Global Admin or Security Admin | Billed |
 | Office 365 | None | Global Admin or Security Admin | Free |
 | Security Events via AMA (Windows) | None | Monitoring Contributor (for the DCR) | Billed |
+| Common Event Format (CEF) via AMA | None | Monitoring Contributor (for the DCR) | Billed |
+| Syslog via AMA (Linux) | None | Monitoring Contributor (for the DCR) | Billed |
 | Microsoft Defender Threat Intelligence | None | Global Admin or Security Admin | Free |
 | Premium Microsoft Defender Threat Intelligence | MDTI Premium | Global Admin or Security Admin | Billed |
 | Threat Intelligence Platforms (legacy) | None | Global Admin or Security Admin | Billed |
