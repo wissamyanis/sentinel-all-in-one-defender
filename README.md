@@ -8,6 +8,8 @@ Sentinel Accelerated All-in-One speeds up the deployment and initial configurati
 
 Microsoft Sentinel is still deployed on Azure (a Log Analytics workspace with Sentinel enabled). The Defender portal is the operational front end. This template provisions everything on Azure the same way, and adds the connector and collection changes that come with the move to the Defender portal.
 
+> **Timeline:** Microsoft Sentinel is generally available in the Microsoft Defender portal (no Defender XDR or E5 license required). After **March 31, 2027**, Microsoft Sentinel will no longer be supported in the Azure portal — the Defender portal becomes the primary experience. Planning new deployments around the Defender portal now is recommended.
+
 ## What is new in this edition
 
 - Data connector API versions bumped to GA `2025-09-01`
@@ -62,23 +64,13 @@ It takes around 10 minutes to deploy. To create the scheduled analytics rules th
 
 ## Deploy
 
-> The **Deploy to Azure** button requires this repository to be **Public** — the Azure portal fetches the templates from `raw.githubusercontent.com`. While the repo is Private, use the CLI method below or the [CreateUIDefinition Sandbox](https://portal.azure.com/#view/Microsoft_Azure_CreateUIDef/SandboxBlade) to preview the wizard.
+> The **Deploy to Azure** button requires this repository to be **Public** — the Azure portal fetches the templates from `raw.githubusercontent.com`. While the repo is Private, use the [CreateUIDefinition Sandbox](https://portal.azure.com/#view/Microsoft_Azure_CreateUIDef/SandboxBlade) to preview the wizard.
 
 [![Deploy To Azure](https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/1-CONTRIBUTION-GUIDE/images/deploytoazure.svg?sanitize=true)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fwissamyanis%2Fsentinel-all-in-one-defender%2Fmain%2Fazuredeploy-v3.json/createUIDefinitionUri/https%3A%2F%2Fraw.githubusercontent.com%2Fwissamyanis%2Fsentinel-all-in-one-defender%2Fmain%2FcreateUiDefinition.json)
 
-### Deploy the Windows Security Events DCR from the CLI
+Click the button, complete the wizard (Basics, Settings, Content Hub solutions, Data connectors, Analytics rules), and deploy. When you select **Security Events via AMA (Windows)**, choose the event set (All / Common / Minimal).
 
-This module is self-contained and is the quickest way to test the new AMA/DCR piece:
-
-```powershell
-az login
-az deployment group create `
-  --resource-group "<rg-with-your-workspace>" `
-  --template-file "LinkedTemplates/dataCollectionRules.json" `
-  --parameters workspaceName="<your-workspace>" dataConnectorsKind='["SecurityEvents"]' securityEventSet="Common"
-```
-
-> The DCR creates the collection **rule**. To actually collect events, associate the DCR with machines that have the Azure Monitor Agent installed (via the Sentinel connector page or Azure Policy).
+> The Windows Security Events connector creates the Data Collection **rule**. To actually collect events, associate the DCR with machines that have the Azure Monitor Agent installed (via the Sentinel connector page or Azure Policy).
 
 ## Connecting the workspace to the Defender portal
 
