@@ -455,7 +455,19 @@
                 "filterPlaceholder": "Filter items ...",
                 "multiLine": true,
                 "defaultDescription": "A value for selection",
-                "defaultValue": [{"value": "Office365"}],
+                "defaultValue": [
+                    {"value": "AzureActiveDirectory"},
+                    {"value": "AzureActiveDirectoryIDP"},
+                    {"value": "AzureActivity"},
+                    {"value": "MicrosoftDefenderForCloud"},
+                    {"value": "Microsoft365Defender"},
+                    {"value": "MicrosoftCloudAppSecurity"},
+                    {"value": "MicrosoftDefenderAdvancedThreatProtection"},
+                    {"value": "AzureAdvancedThreatProtection"},
+                    {"value": "MicrosoftThreatIntelligence"},
+                    {"value": "Office365"},
+                    {"value": "SecurityEvents"}
+                ],
                 "toolTip": "Select the data connectors that you would like to enable",
                 "constraints": {
                     "allowedValues": [
