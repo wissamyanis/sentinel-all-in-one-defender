@@ -47,7 +47,7 @@
 
   <!-- Defender portal tag -->
   <g transform="translate(367,262)">
-    <rect x="0" y="0" width="340" height="36" rx="18" fill="#1b3f86" stroke="#3ea0ff" stroke-width="1.5"/>
+    <rect x="0" y="0" width="315" height="36" rx="18" fill="#1b3f86" stroke="#3ea0ff" stroke-width="1.5"/>
     <circle cx="24" cy="18" r="6" fill="#4ade80"/>
     <text x="40" y="18" font-size="17" font-weight="600" fill="#dbe8ff" dominant-baseline="central">Microsoft Defender portal ready</text>
   </g>
