@@ -415,10 +415,11 @@
             "apiVersion": "2021-05-01-preview",
             "name": "sentinel-activitylog-to-la",
             "dependsOn": [
+                "workspaceCreation",
                 "enableDataConnectors"
             ],
             "properties": {
-                "workspaceId": "[concat('/subscriptions/',parameters('subscriptionId'),'/resourcegroups/',parameters('rgName'),'/providers/microsoft.operationalinsights/workspaces/',parameters('workspaceName'))]",
+                "workspaceId": "[reference('workspaceCreation').outputs.workspaceResourceId.value]",
                 "logs": [
                     { "category": "Administrative", "enabled": true },
                     { "category": "Security", "enabled": true },
@@ -438,10 +439,11 @@
             "scope": "/",
             "name": "[variables('aadDiagnosticsName')]",
             "dependsOn": [
+                "workspaceCreation",
                 "enableDataConnectors"
             ],
             "properties": {
-                "workspaceId": "[concat('/subscriptions/',parameters('subscriptionId'),'/resourcegroups/',parameters('rgName'),'/providers/microsoft.operationalinsights/workspaces/',parameters('workspaceName'))]",
+                "workspaceId": "[reference('workspaceCreation').outputs.workspaceResourceId.value]",
                 "logs": [
                     {
                         "category": "SignInLogs",
