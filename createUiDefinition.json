@@ -405,11 +405,6 @@
                             "value": "MicrosoftDefenderForCloud"
                         },
                         {
-                            "label": "Microsoft Defender for IoT",
-                            "description": "Streams alerts from Microsoft Defender for IoT for the selected subscription. Relevant license and Contributor/Security Admin permission required",
-                            "value": "IOT"
-                        },
-                        {
                             "label": "Microsoft Purview Insider Risk Management",
                             "description": "Relevant license and Global Admin or Security Admin permission required",
                             "value": "OfficeIRM"
