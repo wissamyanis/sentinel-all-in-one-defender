@@ -44,7 +44,6 @@
         "irmName": "[concat('irm', uniqueString(resourceGroup().id))]",
         "powerbiName": "[concat('powerbi', uniqueString(resourceGroup().id))]",
         "ascName": "[concat('asc', uniqueString(resourceGroup().id))]",
-        "aadipName": "[concat('aadip', uniqueString(resourceGroup().id))]",
         "tiName": "[concat('ti', uniqueString(resourceGroup().id))]",
         "mstiName": "[concat('msti', uniqueString(resourceGroup().id))]",
         "premiumMdtiName": "[concat('premiumMdti', uniqueString(resourceGroup().id))]",
@@ -70,22 +69,6 @@
                         "state": "enabled"
                     },
                     "teams": {
-                        "state": "enabled"
-                    }
-                }
-            }
-        },
-        {
-            "condition": "[contains(parameters('dataConnectorsKind'), 'AzureActiveDirectory')]",
-            "type": "Microsoft.OperationalInsights/workspaces/providers/dataConnectors",
-            "apiVersion": "2025-09-01",
-            "location": "[parameters('location')]",
-            "name": "[concat(parameters('workspaceName'),'/Microsoft.SecurityInsights/',variables('aadipName'))]",
-            "kind": "AzureActiveDirectory",
-            "properties": {
-                "tenantId": "[parameters('tenantId')]",
-                "dataTypes": {
-                    "alerts": {
                         "state": "enabled"
                     }
                 }

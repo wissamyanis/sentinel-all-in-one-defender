@@ -31,7 +31,6 @@
         }
     },
     "variables": {
-        "aadipRuleId": "[concat('aadipRuleId', uniqueString(parameters('ruleGuid')))]",
         "aatpRuleId": "[concat('aatpRuleId', uniqueString(parameters('ruleGuid')))]",
         "ascRuleId": "[concat('ascRuleId', uniqueString(parameters('ruleGuid')))]",
         "mcasRuleId": "[concat('mcasRuleId', uniqueString(parameters('ruleGuid')))]",
@@ -41,20 +40,6 @@
         "schedAppCred": "[concat('schedAppCred', uniqueString(parameters('ruleGuid')))]"
     },
     "resources": [
-        {
-            "condition": "[contains(parameters('dataConnectorsKind'), 'AzureActiveDirectoryIDP')]",
-            "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
-            "name": "[concat(parameters('workspaceName'),'/Microsoft.SecurityInsights/',variables('aadipRuleId'))]",
-            "apiVersion": "2023-02-01",
-            "kind": "MicrosoftSecurityIncidentCreation",
-            "location": "[parameters('location')]",
-            "properties": {
-                "displayName": "Create incidents based on Microsoft Entra ID Protection alerts",
-                "description": "Create incidents based on all alerts generated in Microsoft Entra ID Protection",
-                "enabled": true,
-                "productFilter": "Azure Active Directory Identity Protection"
-            }
-        },
         {
             "condition": "[contains(parameters('dataConnectorsKind'), 'AzureAdvancedThreatProtection')]",
             "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",

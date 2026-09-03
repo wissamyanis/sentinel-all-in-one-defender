@@ -385,14 +385,9 @@
                 "constraints": {
                     "allowedValues": [
                         {
-                            "label": "Microsoft Entra ID",
-                            "description": "Relevant license and Global Admin or Security Admin permission required.",
+                            "label": "Microsoft Entra ID (sign-in & audit logs)",
+                            "description": "Streams Entra ID SignInLogs and AuditLogs to the workspace via tenant diagnostic settings (this is separate from the Sentinel Entra ID connector, which the Defender portal manages on onboarded workspaces). Enables the identity analytics rules. Requires Global Administrator and an Entra ID P1/P2 license for sign-in logs.",
                             "value": "AzureActiveDirectory"
-                        },
-                        {
-                            "label": "Microsoft Entra ID Protection",
-                            "description": "Relevant license and Global Admin or Security Admin permission required.",
-                            "value": "AzureActiveDirectoryIDP"
                         },
                         {
                             "label": "Azure Activity",
