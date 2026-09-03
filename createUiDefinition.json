@@ -131,10 +131,11 @@
           "label": "Select Commitment Tier (GB/day)",
           "placeholder": "",
           "multiselect": false,
-          "defaultValue": 100,
-          "toolTip": "Select the Commitment Tier in GB/day",
+          "defaultValue": "50 GB",
+          "toolTip": "Select the Commitment Tier in GB/day. The 50 GB/day tier is available in the simplified (unified) pricing model.",
           "constraints": {
               "allowedValues": [
+                  { "label": "50 GB", "value": 50 },
                   { "label": "100 GB", "value": 100 },
                   { "label": "200 GB", "value": 200 },
                   { "label": "300 GB", "value": 300 },
