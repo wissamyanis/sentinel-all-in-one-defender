@@ -383,7 +383,6 @@
                     {"value": "MicrosoftCloudAppSecurity"},
                     {"value": "MicrosoftDefenderAdvancedThreatProtection"},
                     {"value": "AzureAdvancedThreatProtection"},
-                    {"value": "MicrosoftThreatIntelligence"},
                     {"value": "Office365"},
                     {"value": "SecurityEvents"}
                 ],
@@ -482,12 +481,12 @@
                         },
                         {
                             "label": "Microsoft Defender Threat Intelligence",
-                            "description": "Ingests the Microsoft emerging threat feed (public indicators) into Sentinel. Global Admin or Security Admin permission required",
+                            "description": "Ingests the Microsoft emerging threat feed (public indicators) into Sentinel. NOTE: your tenant must be approved (CFAR registration) to onboard this connector, otherwise deployment will fail. Global Admin or Security Admin permission required",
                             "value": "MicrosoftThreatIntelligence"
                         },
                         {
                             "label": "Premium Microsoft Defender Threat Intelligence",
-                            "description": "Ingests the premium MDTI indicator feed. Requires the MDTI premium license. Global Admin or Security Admin permission required",
+                            "description": "Ingests the premium MDTI indicator feed. Requires the MDTI premium license and tenant onboarding approval (CFAR). Global Admin or Security Admin permission required",
                             "value": "PremiumMicrosoftDefenderForThreatIntelligence"
                         }
                     ],
