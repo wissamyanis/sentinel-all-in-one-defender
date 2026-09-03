@@ -23,8 +23,8 @@
           "visible": true,
           "options": {
               "icon": "Info",
-              "text": "This template is deploying resources at the Azure AD tenant scope. If you see a red message above, click here to learn how to assign the proper permission.",
-              "uri": "https://learn.microsoft.com/en-us/azure/azure-resource-manager/templates/deploy-to-tenant?tabs=azure-cli#required-access"
+              "text": "This template deploys at the subscription scope: it creates the resource group and all resources inside it. You need Owner or Contributor on the selected subscription. If you see a red permission message above, click here to learn more.",
+              "uri": "https://learn.microsoft.com/en-us/azure/azure-resource-manager/templates/deploy-to-subscription"
           }
         },
         {
