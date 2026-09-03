@@ -592,8 +592,6 @@
       "dataRetention": "[basics('dataRetention')]",
       "pricingTierLA": "[basics('pricingTier')]",
       "capacityReservationLA": "[basics('capacityReservation')]",
-      "pricingTierSentinel": "[if(equals(basics('pricingTier'),'CapacityReservation'),'CapacityReservation','PerGB')]",
-      "capacityReservationSentinel": "[basics('capacityReservation')]",
       "enableUeba": "[steps('settings').enableUeba]",
       "identityProviders": "[steps('settings').identityProviders]",
       "enableDiagnostics": "[steps('settings').enableDiagnostics]",

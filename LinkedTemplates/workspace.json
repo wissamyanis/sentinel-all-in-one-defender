@@ -42,34 +42,6 @@
             ],
             "defaultValue": 100
         },
-        "pricingTierSentinel": {
-            "type": "string",
-            "metadata": {
-                "description": "Pricing tier: pergb2018 or legacy tiers (Free, Standalone, PerNode, Standard or Premium) which are not available to all customers."
-            },
-            "allowedValues": [
-                "CapacityReservation",
-                "PerGB"
-            ],
-            "defaultValue": "PerGB"
-        },
-        "capacityReservationSentinel": {
-            "type": "int",
-            "metadata": {
-                "description": "Commitment tier"
-            },
-            "allowedValues": [
-                100,
-                200,
-                300,
-                400,
-                500,
-                1000,
-                2000,
-                5000
-            ],
-            "defaultValue": 100
-        },
         "dailyQuota": {
             "type": "int",
             "metadata": {
@@ -143,11 +115,7 @@
                 "[resourceId('Microsoft.OperationalInsights/workspaces/providers/onboardingStates', parameters('workspaceName'), 'Microsoft.SecurityInsights', 'default')]"
             ],
             "properties": {
-                "workspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspaceName'))]",
-                "sku": {
-                    "capacitiyReservationName": "[if(equals(parameters('pricingTierSentinel'),'CapacityReservation'), parameters('capacityReservationSentinel'), json('null'))]",
-                    "name": "[parameters('pricingTierSentinel')]"
-                }
+                "workspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspaceName'))]"
             },
             "plan": {
                 "name": "[concat('SecurityInsights','(', parameters('workspaceName'),')')]",
