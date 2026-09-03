@@ -92,17 +92,6 @@
             }
         },
         {
-            "condition": "[contains(parameters('dataConnectorsKind'), 'AzureActivity')]",
-            "type": "Microsoft.OperationalInsights/workspaces/dataSources",
-            "apiVersion": "2020-03-01-preview",
-            "location": "[parameters('location')]",
-            "name": "[concat(parameters('workspaceName'), '/', replace(parameters('subscriptionId'),'-', ''))]",
-            "kind": "AzureActivityLog",
-            "properties": {
-                "linkedResourceId": "[concat('/subscriptions/', parameters('subscriptionId'), '/providers/microsoft.insights/eventtypes/management')]"
-            }
-        },
-        {
             "condition": "[contains(parameters('dataConnectorsKind'), 'MicrosoftDefenderForCloud')]",
             "type": "Microsoft.OperationalInsights/workspaces/providers/dataConnectors",
             "apiVersion": "2025-09-01",
