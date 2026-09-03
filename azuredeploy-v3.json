@@ -415,7 +415,7 @@
             "apiVersion": "2021-05-01-preview",
             "name": "sentinel-activitylog-to-la",
             "dependsOn": [
-                "workspaceCreation"
+                "enableDataConnectors"
             ],
             "properties": {
                 "workspaceId": "[concat('/subscriptions/',parameters('subscriptionId'),'/resourcegroups/',parameters('rgName'),'/providers/microsoft.operationalinsights/workspaces/',parameters('workspaceName'))]",
@@ -438,7 +438,7 @@
             "scope": "/",
             "name": "[variables('aadDiagnosticsName')]",
             "dependsOn": [
-                "enableSolutions"
+                "enableDataConnectors"
             ],
             "properties": {
                 "workspaceId": "[concat('/subscriptions/',parameters('subscriptionId'),'/resourcegroups/',parameters('rgName'),'/providers/microsoft.operationalinsights/workspaces/',parameters('workspaceName'))]",
