@@ -413,6 +413,7 @@
             "condition": "[contains(parameters('enableDataConnectors'), 'AzureActiveDirectory')]",
             "type": "microsoft.aadiam/diagnosticSettings",
             "apiVersion": "2017-04-01",
+            "scope": "/",
             "name": "[variables('aadDiagnosticsName')]",
             "dependsOn": [
                 "enableSolutions"
