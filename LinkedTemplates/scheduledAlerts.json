@@ -31,7 +31,6 @@
         }
     },
     "variables": {
-        "fusionRuleId": "[concat('fusion', uniqueString(parameters('ruleGuid')))]",
         "aadipRuleId": "[concat('aadipRuleId', uniqueString(parameters('ruleGuid')))]",
         "aatpRuleId": "[concat('aatpRuleId', uniqueString(parameters('ruleGuid')))]",
         "ascRuleId": "[concat('ascRuleId', uniqueString(parameters('ruleGuid')))]",
@@ -110,17 +109,6 @@
                 "description": "Create incidents based on all alerts generated in Microsoft Defender for IoT",
                 "enabled": true,
                 "productFilter": "Azure Security Center for IoT"
-            }
-        },
-        {
-            "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
-            "name": "[concat(parameters('workspaceName'),'/Microsoft.SecurityInsights/',variables('fusionRuleId'))]",
-            "apiVersion": "2023-02-01",
-            "kind": "Fusion",
-            "location": "[parameters('location')]",
-            "properties": {
-                "enabled": true,
-                "alertRuleTemplateName": "f71aba3d-28fb-450b-b192-4e76a83015c8"
             }
         },
         {
