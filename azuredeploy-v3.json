@@ -400,11 +400,11 @@
                     "workspaceName": {
                         "value": "[parameters('workspaceName')]"
                     },
-                    "dataConnectorsList":{
-                        "value": "[replace(replace(replace(string(parameters('enableDataConnectors')),'\"',''),'[',''),']','')]"
+                    "dataConnectorsKind": {
+                        "value": "[parameters('enableDataConnectors')]"
                     },
-                    "severityLevels": {
-                        "value": "[replace(replace(replace(string(parameters('severityLevels')),'\"',''),'[',''),']','')]"
+                    "location": {
+                        "value": "[parameters('location')]"
                     }
                 }
             }
