@@ -1,4 +1,4 @@
-{
+﻿{
     "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
@@ -164,7 +164,6 @@
             "dependsOn": [
                 "[resourceId('Microsoft.Resources/resourceGroups', parameters('rgName'))]"
             ],
-            "subscriptionId": "[parameters('subscriptionId')]",
             "resourceGroup": "[parameters('rgName')]",
             "properties": {
                 "mode": "Incremental",
@@ -204,7 +203,6 @@
             "dependsOn": [
                 "workspaceCreation"
             ],
-            "subscriptionId": "[parameters('subscriptionId')]",
             "resourceGroup": "[parameters('rgName')]",
             "properties": {
                 "mode": "Incremental",
@@ -233,7 +231,6 @@
             "name": "enableSolutions",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
-            "subscriptionId": "[parameters('subscriptionId')]",
             "resourceGroup": "[parameters('rgName')]",
             "dependsOn": [
                 "workspaceCreation"
@@ -262,7 +259,6 @@
             "name": "enableDataConnectors",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
-            "subscriptionId": "[parameters('subscriptionId')]",
             "resourceGroup": "[parameters('rgName')]",
             "dependsOn": [
                 "workspaceCreation",
@@ -298,7 +294,6 @@
             "name": "enableSecurityEventsDCR",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
-            "subscriptionId": "[parameters('subscriptionId')]",
             "resourceGroup": "[parameters('rgName')]",
             "dependsOn": [
                 "workspaceCreation",
@@ -331,7 +326,6 @@
             "name": "enableCEFSyslogDCR",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
-            "subscriptionId": "[parameters('subscriptionId')]",
             "resourceGroup": "[parameters('rgName')]",
             "dependsOn": [
                 "workspaceCreation",
@@ -361,7 +355,6 @@
             "name": "enableAlerts",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
-            "subscriptionId": "[parameters('subscriptionId')]",
             "resourceGroup": "[parameters('rgName')]",
             "dependsOn": [
                 "enableSolutions"
@@ -393,7 +386,6 @@
             "name": "enableScheduledAlerts",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
-            "subscriptionId": "[parameters('subscriptionId')]",
             "resourceGroup": "[parameters('rgName')]",
             "dependsOn": [
                 "enableSolutions"
