@@ -375,14 +375,8 @@
                 "multiLine": true,
                 "defaultDescription": "A value for selection",
                 "defaultValue": [
-                    {"value": "AzureActiveDirectory"},
-                    {"value": "AzureActiveDirectoryIDP"},
                     {"value": "AzureActivity"},
                     {"value": "MicrosoftDefenderForCloud"},
-                    {"value": "Microsoft365Defender"},
-                    {"value": "MicrosoftCloudAppSecurity"},
-                    {"value": "MicrosoftDefenderAdvancedThreatProtection"},
-                    {"value": "AzureAdvancedThreatProtection"},
                     {"value": "Office365"},
                     {"value": "SecurityEvents"}
                 ],
@@ -411,7 +405,7 @@
                         },
                         {
                             "label": "Microsoft Defender XDR (formerly Microsoft 365 Defender)",
-                            "description": "Streams Defender XDR incidents and alerts into Sentinel, including signals from Defender for Office 365, Defender for Endpoint, Defender for Identity and Defender for Cloud Apps. Required for the unified Defender portal experience. Incident and alert synchronization only, no advanced hunting data. Relevant license and Global Admin or Security Admin permission required",
+                            "description": "NOTE: If your workspace is onboarded to the Microsoft Defender portal (unified SecOps), this connector is managed by the Defender portal and cannot be enabled via ARM (it will error). Enable it in the Defender portal instead. Streams Defender XDR incidents and alerts including Defender for Office 365/Endpoint/Identity/Cloud Apps. Relevant license and Global Admin or Security Admin permission required",
                             "value": "Microsoft365Defender"
                         },
                         {
@@ -421,17 +415,17 @@
                         },
                         {
                             "label": "Microsoft Defender for Cloud Apps",
-                            "description": "Streams alerts and Cloud Discovery logs from Defender for Cloud Apps (MCAS). Relevant license and Global Admin or Security Admin permission required",
+                            "description": "NOTE: Managed by the Defender portal when the workspace is onboarded to unified SecOps (may error via ARM). Streams alerts and Cloud Discovery logs from Defender for Cloud Apps. Relevant license and Global Admin or Security Admin permission required",
                             "value": "MicrosoftCloudAppSecurity"
                         },
                         {
                             "label": "Microsoft Defender for Identity",
-                            "description": "Streams alerts from Defender for Identity (AATP). Relevant license and Global Admin or Security Admin permission required",
+                            "description": "NOTE: Managed by the Defender portal when the workspace is onboarded to unified SecOps (may error via ARM). Streams alerts from Defender for Identity. Relevant license and Global Admin or Security Admin permission required",
                             "value": "AzureAdvancedThreatProtection"
                         },
                         {
                             "label": "Microsoft Defender for Endpoint",
-                            "description": "Streams alerts from Defender for Endpoint (MDATP). Relevant license and Global Admin or Security Admin permission required",
+                            "description": "NOTE: Managed by the Defender portal when the workspace is onboarded to unified SecOps (may error via ARM). Streams alerts from Defender for Endpoint. Relevant license and Global Admin or Security Admin permission required",
                             "value": "MicrosoftDefenderAdvancedThreatProtection"
                         },
                         {
