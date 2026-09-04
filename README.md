@@ -2,112 +2,86 @@
 
 ![Sentinel Accelerated All-in-One](./media/SentinelAcceleratedLogo.png)
 
-> Personal copy of [Javier Soriano's Sentinel All-in-One](https://github.com/javiersoriano/sentinel-all-in-one), extended for the unified **Microsoft Defender portal**. All original authorship and credit belong to Javier Soriano.
+> Personal fork of [Javier Soriano's Sentinel All-in-One](https://github.com/javiersoriano/sentinel-all-in-one), re-worked for the unified **Microsoft Defender portal** era. All original authorship and credit belong to Javier Soriano.
 
-Sentinel Accelerated All-in-One speeds up the deployment and initial configuration of a Microsoft Sentinel environment. It is ideal for Proof of Concept scenarios and connector onboarding when highly privileged users are needed. This edition is updated for the era where Microsoft Sentinel runs in the unified **Microsoft Defender portal** (`security.microsoft.com`).
+## Purpose
 
-Microsoft Sentinel is still deployed on Azure (a Log Analytics workspace with Sentinel enabled). The Defender portal is the operational front end. This template provisions everything on Azure the same way, and adds the connector and collection changes that come with the move to the Defender portal.
+A **Sentinel adoption accelerator for the field**. It lets a Solution Engineer deploy a working, customer-ready Microsoft Sentinel — workspace, data connectors, ingestion, Content Hub content, and analytics rules already switched on — in about **15 minutes, live during a customer meeting**. The customer leaves with a functioning SIEM starting point they own and can extend.
 
-> **Timeline:** Microsoft Sentinel is generally available in the Microsoft Defender portal (no Defender XDR or E5 license required). After **March 31, 2027**, Microsoft Sentinel will no longer be supported in the Azure portal — the Defender portal becomes the primary experience. Planning new deployments around the Defender portal now is recommended.
+It is built for the **Microsoft Defender portal** era: it deploys only what Azure Resource Manager (ARM) still owns, and defers the connectors that the Defender portal now manages — so it deploys cleanly on modern Defender-connected tenants where the original Azure-portal-era tool fails.
 
-## What is new in this edition
+> **Timeline:** Microsoft Sentinel is generally available in the Microsoft Defender portal (no Defender XDR or E5 license required). After **March 31, 2027**, Microsoft Sentinel is no longer supported in the Azure portal — the Defender portal becomes the only experience. This tool deploys via ARM, which is unaffected by that UX retirement.
 
-- Data connector API versions updated to GA `2025-09-01` where supported (non-GA kinds pinned to their supported API)
-- Added the full Microsoft Defender connector family: **Defender for Cloud Apps**, **Defender for Identity**, **Defender for Endpoint**, and exposed **Defender for IoT**
-- New threat-intel connectors: **Microsoft Defender Threat Intelligence** and **Premium MDTI** (replacing the deprecated Threat Intelligence Platforms connector for new deployments)
-- "Microsoft 365 Defender" relabeled **Microsoft Defender XDR** (the central connector for the unified portal; also carries Defender for Office 365 signal)
-- **Windows Security Events via AMA** using a Data Collection Rule (All / Common / Minimal event sets) — the modern replacement for the retired Log Analytics agent (MMA/OMS)
-- **CEF and Syslog via AMA** Data Collection Rules for firewalls and appliances (e.g. Palo Alto)
-- **Microsoft Purview Information Protection** added to the Content Hub solutions
-- Connector and solution labels updated to current product names (Microsoft Entra ID, Purview, Power BI)
-- Recommended Defender-portal connectors and a curated core set of Content Hub solutions are pre-selected by default
-- Optional modern subscription-scope **Azure Activity** connector (diagnostic-setting based)
-- `Scripts/Connect-DefenderPortal.ps1` to verify readiness and guide Defender portal onboarding
+## The connector model (Defender era)
 
-For the full technical detail of every change, see [DEFENDER-CHANGES.md](./DEFENDER-CHANGES.md).
+Once a workspace is onboarded to the Defender portal (which is automatic for many workspaces created after July 2025), the Microsoft Defender family connectors are **managed by Defender** and can no longer be created or changed through ARM/Sentinel. This tool splits connectors accordingly:
 
-## Prerequisites
+**Deployed by this tool (ARM-safe):**
 
-- An Azure subscription.
-- An Azure user account with enough permissions to enable the desired connectors (see the table below). Write permissions to the workspace are **always** needed.
-- Some data connectors require the relevant license in order to be enabled (see the table below).
+| Connector | How | Notes |
+| --- | --- | --- |
+| Azure Activity | Subscription diagnostic setting | Default. Fast, visible data. |
+| Microsoft Defender for Cloud | Sentinel connector | Default. |
+| Office 365 | Sentinel connector | Default. |
+| Windows Security Events (AMA) | Data Collection Rule | Default. Attach AMA to machines to collect. |
+| Microsoft Entra ID (sign-in & audit logs) | Tenant diagnostic settings | Streams SigninLogs/AuditLogs; powers the identity analytics rules. Global Admin required. |
+| Common Event Format (CEF) / Syslog (AMA) | Data Collection Rule | For firewalls/appliances (e.g. Palo Alto). Attach a Linux forwarder. |
+| Dynamics 365, Power BI, Project, Purview IRM | Sentinel connector | Only if the tenant is licensed. |
+| Microsoft Defender Threat Intelligence / Premium MDTI | Sentinel connector | Requires tenant CFAR onboarding approval. |
 
-The following table summarizes the license, permissions and cost to enable each data connector in this edition:
+**Not deployed by this tool (managed by the Defender portal, enabled automatically when the workspace joins Defender):**
 
-| Data Connector | License | Permissions | Cost |
-| --- | --- | --- | --- |
-| Microsoft Entra ID | Any Entra ID license | Global/Security Admin | Billed |
-| Microsoft Entra ID Protection | Entra ID Premium 2 | Global/Security Admin | Free |
-| Azure Activity | None | Subscription Reader | Free |
-| Dynamics 365 | D365 license | Global/Security Admin | Billed |
-| Microsoft Defender XDR&nbsp;¹ | M365 E5 / equivalent | Global/Security Admin | Free |
-| Microsoft Defender for Cloud | Defender for Cloud | Security Reader | Free |
-| Microsoft Defender for Cloud Apps | Defender for Cloud Apps | Global/Security Admin | Free |
-| Microsoft Defender for Identity | Defender for Identity | Global/Security Admin | Free |
-| Microsoft Defender for Endpoint | Defender for Endpoint | Global/Security Admin | Free |
-| Microsoft Defender for IoT | Defender for IoT | Contributor / Security Admin | Free |
-| Microsoft Purview Insider Risk Management | IRM license | Global/Security Admin | Free |
-| Microsoft Power BI | Power BI license | Global/Security Admin | Billed |
-| Microsoft Project | Project license | Global/Security Admin | Billed |
-| Office 365 | None | Global/Security Admin | Free |
-| Security Events via AMA (Windows) | None | Monitoring Contributor | Billed |
-| Common Event Format (CEF) via AMA | None | Monitoring Contributor | Billed |
-| Syslog via AMA (Linux) | None | Monitoring Contributor | Billed |
-| Microsoft Defender Threat Intelligence | None | Global/Security Admin | Free |
-| Premium Microsoft Defender Threat Intelligence | MDTI Premium | Global/Security Admin | Billed |
-| Threat Intelligence Platforms (legacy) | None | Global/Security Admin | Billed |
+- Microsoft Defender XDR, Defender for Endpoint, Defender for Identity, Defender for Cloud Apps, Defender for Office 365
+- Microsoft Defender for IoT (requires the Defender for IoT plan to be provisioned)
 
-¹ Microsoft Defender XDR also carries Defender for Office 365 signal. "Global/Security Admin" means Global Administrator or Security Administrator. AMA-based connectors (Security Events, CEF, Syslog) create the Data Collection Rule only — you associate the agent/forwarder separately.
+These are intentionally **not** in the wizard: attempting to deploy them via ARM on a Defender-connected workspace fails. They light up automatically in the Defender portal instead.
 
 ## What the template does
 
-The template performs the following tasks:
+1. Creates the resource group and the Log Analytics workspace.
+2. Enables Microsoft Sentinel on the workspace (unified/simplified billing).
+3. Sets retention, daily cap, and pricing tier (Pay-as-you-go or a Commitment Tier from 50 GB/day up).
+4. Enables UEBA and health diagnostics.
+5. Installs a curated set of Content Hub solutions.
+6. Enables the selected ARM-safe data connectors (see above).
+7. Enables analytics rules as **native ARM resources** — Microsoft incident-creation rules plus a curated set of scheduled KQL detections. No deployment script, no managed identity, no storage account, so it works under strict storage policies.
 
-1. Creates the resource group (if it does not exist yet).
-2. Creates the Log Analytics workspace (if it does not exist yet).
-3. Installs Microsoft Sentinel on top of the workspace (if not installed yet).
-4. Sets workspace retention, daily cap and commitment tiers if desired.
-5. Enables UEBA with the relevant identity providers.
-6. Enables health diagnostics for Analytics Rules, Data Connectors and Automation Rules.
-7. Installs Content Hub solutions from a predefined list.
-8. Enables the selected data connectors (see list above), including **Windows Security Events via AMA** as a Data Collection Rule.
-9. Enables analytics rules (Scheduled, NRT, Fusion, ML Behavior Analytics) for the selected solutions and connectors, with the ability to filter by severity.
-
-It takes around 10 minutes to deploy. To create the scheduled analytics rules the template uses a [deployment script](https://learn.microsoft.com/en-us/azure/azure-resource-manager/templates/deployment-script-template), which requires a [managed identity](https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/overview). You will see this resource in your resource group when the deployment finishes; you can remove it afterwards if desired.
+Deploys at **subscription scope** (creates its own resource group); requires **Owner or Contributor on the subscription**. Typical run is ~10-15 minutes.
 
 ## Deploy
 
-> The **Deploy to Azure** button requires this repository to be **Public** — the Azure portal fetches the templates from `raw.githubusercontent.com`. While the repo is Private, use the [CreateUIDefinition Sandbox](https://portal.azure.com/#view/Microsoft_Azure_CreateUIDef/SandboxBlade) to preview the wizard.
+> The **Deploy to Azure** button requires this repository to be **Public** (the Azure portal fetches the templates from `raw.githubusercontent.com`).
 
 [![Deploy To Azure](https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/1-CONTRIBUTION-GUIDE/images/deploytoazure.svg?sanitize=true)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fwissamyanis%2Fsentinel-all-in-one-defender%2Fmain%2Fazuredeploy-v3.json/createUIDefinitionUri/https%3A%2F%2Fraw.githubusercontent.com%2Fwissamyanis%2Fsentinel-all-in-one-defender%2Fmain%2FcreateUiDefinition.json)
 
-Click the button, complete the wizard (Basics, Settings, Content Hub solutions, Data connectors, Analytics rules), and deploy. When you select **Security Events via AMA (Windows)**, choose the event set (All / Common / Minimal).
+Click the button, complete the wizard (Basics, Settings, Content Hub Solutions, Data connectors, Analytics rules), and deploy.
 
-> The Windows Security Events connector creates the Data Collection **rule**. To actually collect events, associate the DCR with machines that have the Azure Monitor Agent installed (via the Sentinel connector page or Azure Policy).
+**Tips for a reliable live demo:**
+- Use a **new resource group** and a **workspace name you have not used before** (deleted workspace names are soft-reserved for 14 days and can collide).
+- After pushing template changes to GitHub, allow a few minutes for the raw CDN cache to refresh, and fully reload the Deploy blade, before deploying.
+- Keep the default connector selection for a guaranteed-green deploy; add license-gated connectors only when you know the tenant supports them (a failing connector fails the whole deployment).
 
 ## Connecting the workspace to the Defender portal
 
-There is no supported ARM/API to programmatically connect a workspace to the Defender portal — it is a portal action. Workspaces onboarded to Sentinel after **July 1, 2025** are, in many cases, connected automatically.
-
-`Scripts/Connect-DefenderPortal.ps1` verifies the workspace is ready (workspace exists, Sentinel enabled, Defender XDR connector present) and prints the remaining portal step and required roles:
+There is no supported ARM/API to connect a workspace to the Defender portal — it is a portal action, and workspaces onboarded to Sentinel after July 1, 2025 are often connected automatically. `Scripts/Connect-DefenderPortal.ps1` verifies readiness (workspace exists, Sentinel enabled) and prints the remaining portal step and required roles:
 
 ```powershell
 ./Scripts/Connect-DefenderPortal.ps1 -SubscriptionId <sub> -ResourceGroup <rg> -WorkspaceName <workspace>
 ```
 
-To onboard you need **Security Administrator** (Microsoft Entra ID) plus **Owner** (unconditional) at the subscription scope, or **User Access Administrator + Microsoft Sentinel Contributor**. See [Connect Microsoft Sentinel to the Defender portal](https://learn.microsoft.com/en-us/unified-secops/microsoft-sentinel-onboard).
+See [Connect Microsoft Sentinel to the Defender portal](https://learn.microsoft.com/en-us/unified-secops/microsoft-sentinel-onboard).
 
 ## Repository layout
 
 ```
-azuredeploy-v3.json          Main deployment template (entry point)
+azuredeploy-v3.json          Main deployment template (entry point, subscription scope)
 createUiDefinition.json      Portal wizard UI
 DEFENDER-CHANGES.md          Details of the Defender-era changes
-LinkedTemplates/             Workspace, settings, solutions, connectors, DCR, rules
+LinkedTemplates/             Workspace, settings, solutions, connectors, DCRs, analytics rules
 Scripts/                     Connect-DefenderPortal.ps1, EnableRules.ps1
 media/                       Logo and assets
 ```
 
 ## Credits
 
-Based on the original [Sentinel All-in-One](https://github.com/javiersoriano/sentinel-all-in-one) by **Javier Soriano** and the Microsoft Sentinel community. This edition extends it with Microsoft Defender portal support.
+Based on the original [Sentinel All-in-One](https://github.com/javiersoriano/sentinel-all-in-one) by **Javier Soriano** and the Microsoft Sentinel community, re-worked for the Microsoft Defender portal era.
