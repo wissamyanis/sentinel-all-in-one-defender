@@ -1,4 +1,4 @@
-# Sentinel Accelerated All-in-One
+# Sentinel Accelerated All-in-One -Beta-
 
 ![Sentinel Accelerated All-in-One](./media/SentinelAcceleratedLogo.png)
 
