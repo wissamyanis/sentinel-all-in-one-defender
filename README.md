@@ -4,7 +4,7 @@
 
 > Personal fork of [Javier Soriano's Sentinel All-in-One](https://github.com/javiersoriano/sentinel-all-in-one), re-worked for the unified **Microsoft Defender portal** era. All original authorship and credit belong to Javier Soriano.
 
-> ⚠️ **Disclaimer — use at your own risk.** This is a personal, community project provided **"AS IS"**, without warranty of any kind. It is **not** an official Microsoft product, is **not** supported, endorsed, or maintained by Microsoft, and does not represent Microsoft. The author accepts **no liability** for any damage, cost, data loss, service disruption, or Azure charges arising from its use. **You are solely responsible** for reviewing the templates, testing in a non-production environment, and ensuring the deployment meets your organization's security, compliance, licensing, and cost requirements before running it. Deploying resources will incur Azure costs. See the [LICENSE](./LICENSE) for full terms.
+> ⚠️ Personal community project — not an official/supported Microsoft product. Provided "as is", use at your own risk. See [Disclaimer & license](#disclaimer--license).
 
 ## Purpose
 
