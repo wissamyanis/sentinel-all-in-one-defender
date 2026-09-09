@@ -90,9 +90,9 @@ Based on the original [Sentinel All-in-One](https://github.com/javiersoriano/sen
 
 ## Disclaimer & license
 
-THIS PROJECT IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED. It is a personal, community contribution and is **not** an official Microsoft product or offering. It is **not** supported, endorsed, certified, or maintained by Microsoft Corporation, and the views and code here do not represent Microsoft. Microsoft names, products, and services are referenced for descriptive purposes only and are trademarks of Microsoft Corporation.
-
-Neither the author nor Microsoft is responsible or liable for any direct, indirect, incidental, or consequential damages, data loss, security exposure, service disruption, licensing issues, or Azure/cloud charges resulting from the use of this project. **Use it entirely at your own risk.** You are solely responsible for reviewing and testing the templates in a non-production environment and for ensuring compliance with your organization's security, governance, licensing, and cost policies before any use.
-
-Licensed under the [MIT License](./LICENSE).
+> <sub>THIS PROJECT IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED. It is a personal, community contribution and is **not** an official Microsoft product or offering. It is **not** supported, endorsed, certified, or maintained by Microsoft Corporation, and the views and code here do not represent Microsoft. Microsoft names, products, and services are referenced for descriptive purposes only and are trademarks of Microsoft Corporation.</sub>
+>
+> <sub>Neither the author nor Microsoft is responsible or liable for any direct, indirect, incidental, or consequential damages, data loss, security exposure, service disruption, licensing issues, or Azure/cloud charges resulting from the use of this project. **Use it entirely at your own risk.** You are solely responsible for reviewing and testing the templates in a non-production environment and for ensuring compliance with your organization's security, governance, licensing, and cost policies before any use.</sub>
+>
+> <sub>Licensed under the [MIT License](./LICENSE).</sub>
 
