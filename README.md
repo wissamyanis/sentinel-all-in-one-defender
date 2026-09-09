@@ -4,6 +4,8 @@
 
 > Personal fork of [Javier Soriano's Sentinel All-in-One](https://github.com/javiersoriano/sentinel-all-in-one), re-worked for the unified **Microsoft Defender portal** era. All original authorship and credit belong to Javier Soriano.
 
+> ⚠️ **Disclaimer — use at your own risk.** This is a personal, community project provided **"AS IS"**, without warranty of any kind. It is **not** an official Microsoft product, is **not** supported, endorsed, or maintained by Microsoft, and does not represent Microsoft. The author accepts **no liability** for any damage, cost, data loss, service disruption, or Azure charges arising from its use. **You are solely responsible** for reviewing the templates, testing in a non-production environment, and ensuring the deployment meets your organization's security, compliance, licensing, and cost requirements before running it. Deploying resources will incur Azure costs. See the [LICENSE](./LICENSE) for full terms.
+
 ## Purpose
 
 A **Sentinel adoption accelerator for the field**. It lets a Solution Engineer deploy a working, customer-ready Microsoft Sentinel — workspace, data connectors, ingestion, Content Hub content, and analytics rules already switched on — in about **15 minutes, live during a customer meeting**. The customer leaves with a functioning SIEM starting point they own and can extend.
@@ -85,3 +87,12 @@ media/                       Logo and assets
 ## Credits
 
 Based on the original [Sentinel All-in-One](https://github.com/javiersoriano/sentinel-all-in-one) by **Javier Soriano** and the Microsoft Sentinel community, re-worked for the Microsoft Defender portal era.
+
+## Disclaimer & license
+
+THIS PROJECT IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED. It is a personal, community contribution and is **not** an official Microsoft product or offering. It is **not** supported, endorsed, certified, or maintained by Microsoft Corporation, and the views and code here do not represent Microsoft. Microsoft names, products, and services are referenced for descriptive purposes only and are trademarks of Microsoft Corporation.
+
+Neither the author nor Microsoft is responsible or liable for any direct, indirect, incidental, or consequential damages, data loss, security exposure, service disruption, licensing issues, or Azure/cloud charges resulting from the use of this project. **Use it entirely at your own risk.** You are solely responsible for reviewing and testing the templates in a non-production environment and for ensuring compliance with your organization's security, governance, licensing, and cost policies before any use.
+
+Licensed under the [MIT License](./LICENSE).
+
