@@ -44,9 +44,6 @@
         "irmName": "[concat('irm', uniqueString(resourceGroup().id))]",
         "powerbiName": "[concat('powerbi', uniqueString(resourceGroup().id))]",
         "ascName": "[concat('asc', uniqueString(resourceGroup().id))]",
-        "tiName": "[concat('ti', uniqueString(resourceGroup().id))]",
-        "mstiName": "[concat('msti', uniqueString(resourceGroup().id))]",
-        "premiumMdtiName": "[concat('premiumMdti', uniqueString(resourceGroup().id))]",
         "mcasName": "[concat('mcas', uniqueString(resourceGroup().id))]",
         "aatpName": "[concat('aatp', uniqueString(resourceGroup().id))]",
         "mdatpName": "[concat('mdatp', uniqueString(resourceGroup().id))]"
@@ -181,56 +178,6 @@
                 "tenantId": "[parameters('tenantId')]",
                 "dataTypes": {
                     "logs": {
-                        "state": "enabled"
-                    }
-                }
-            }
-        },
-        {
-            "condition": "[contains(parameters('dataConnectorsKind'), 'ThreatIntelligence')]",
-            "type": "Microsoft.OperationalInsights/workspaces/providers/dataConnectors",
-            "apiVersion": "2025-09-01",
-            "location": "[parameters('location')]",
-            "name": "[concat(parameters('workspaceName'),'/Microsoft.SecurityInsights/',variables('tiName'))]",
-            "kind": "ThreatIntelligence",
-            "properties": {
-                "tenantId": "[parameters('tenantId')]",
-                "dataTypes": {
-                    "indicators": {
-                        "state": "enabled"
-                    }
-                }
-            }
-        },
-        {
-            "condition": "[contains(parameters('dataConnectorsKind'), 'MicrosoftThreatIntelligence')]",
-            "type": "Microsoft.OperationalInsights/workspaces/providers/dataConnectors",
-            "apiVersion": "2025-09-01",
-            "location": "[parameters('location')]",
-            "name": "[concat(parameters('workspaceName'),'/Microsoft.SecurityInsights/',variables('mstiName'))]",
-            "kind": "MicrosoftThreatIntelligence",
-            "properties": {
-                "tenantId": "[parameters('tenantId')]",
-                "dataTypes": {
-                    "microsoftEmergingThreatFeed": {
-                        "lookbackPeriod": "1970-01-01T00:00:00.000Z",
-                        "state": "enabled"
-                    }
-                }
-            }
-        },
-        {
-            "condition": "[contains(parameters('dataConnectorsKind'), 'PremiumMicrosoftDefenderForThreatIntelligence')]",
-            "type": "Microsoft.OperationalInsights/workspaces/providers/dataConnectors",
-            "apiVersion": "2025-09-01",
-            "location": "[parameters('location')]",
-            "name": "[concat(parameters('workspaceName'),'/Microsoft.SecurityInsights/',variables('premiumMdtiName'))]",
-            "kind": "PremiumMicrosoftDefenderForThreatIntelligence",
-            "properties": {
-                "tenantId": "[parameters('tenantId')]",
-                "lookbackPeriod": "1970-01-01T00:00:00.000Z",
-                "dataTypes": {
-                    "connector": {
                         "state": "enabled"
                     }
                 }

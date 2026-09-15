@@ -438,11 +438,6 @@
                             "label": "Syslog via AMA (Linux)",
                             "description": "Deploys a Data Collection Rule to collect Linux Syslog messages via the Azure Monitor Agent. You must install and associate AMA on the source/forwarder machines separately.",
                             "value": "SyslogViaAMA"
-                        },
-                        {
-                            "label": "Threat Intelligence Platforms",
-                            "description": "TAXII/Graph threat indicators connector. Ingests threat indicators via the TI upload API. Global Admin or Security Admin permission required. (The Microsoft Defender Threat Intelligence feed connectors are intentionally excluded from this wizard because they require tenant CFAR onboarding approval and will fail an ARM deployment on non-approved tenants.)",
-                            "value": "ThreatIntelligence"
                         }
                     ],
                     "required": false
