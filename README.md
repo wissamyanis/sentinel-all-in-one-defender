@@ -29,8 +29,8 @@ Once a workspace is onboarded to the Defender portal (which is automatic for man
 | Microsoft Entra ID (sign-in & audit logs) | Tenant diagnostic settings | Streams SigninLogs/AuditLogs (choose from 12 log categories in the wizard); powers the identity analytics rules. Global Admin required. |
 | Common Event Format (CEF) / Syslog (AMA) | Data Collection Rule | For firewalls/appliances (e.g. Palo Alto). Attach a Linux forwarder. |
 | Dynamics 365, Power BI, Project, Purview IRM | Sentinel connector | Only if the tenant is licensed. |
-| Threat Intelligence Platforms | Sentinel connector | TAXII/upload indicators. No CFAR needed. |
-| Microsoft Defender Threat Intelligence / Premium MDTI | **Excluded from wizard** | Requires tenant **CFAR onboarding approval**, which ARM cannot grant — a non-approved tenant fails with `Forbidden: tenant is not approved for MicrosoftTi connector onboarding`. Left out of the picker so live deploys stay green. The conditional ARM resources remain in `LinkedTemplates/dataConnectors.json`; a CFAR-approved tenant can enable them by adding `MicrosoftThreatIntelligence` / `PremiumMicrosoftDefenderForThreatIntelligence` to `dataConnectorsKind` manually. |
+
+Threat indicator ingestion is delivered via the **Threat Intelligence Content Hub solution** (installed from the Solutions step), not a data connector. The Microsoft Defender Threat Intelligence feed connectors are deliberately **not** included: they require tenant **CFAR onboarding approval** that ARM cannot grant, so on a non-approved tenant they fail with `Forbidden: tenant is not approved for MicrosoftTi connector onboarding` and break the whole deployment. The original upstream project ships no TI data connector either, so this keeps parity with upstream.
 
 **Not deployed by this tool (managed by the Defender portal, enabled automatically when the workspace joins Defender):**
 
