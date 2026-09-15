@@ -32,12 +32,22 @@
     required data connectors is in this list. Omit to enable every installed
     template that matches the severity filter (the behaviour most people want).
 
+.PARAMETER OnlyInstalledConnectors
+    Only create a rule if at least one of the data tables it requires actually
+    has data in the workspace (checked via the Usage table over the last 30
+    days). Rules for connectors you have not installed are skipped cleanly
+    instead of failing with 'table does not exist'. Requires the
+    Az.OperationalInsights module (present in Azure Cloud Shell).
+
 .PARAMETER WhatIf
     Preview only: report how many rules would be created, per severity, without
     creating anything.
 
 .EXAMPLE
     ./EnableRules.ps1 -ResourceGroup rg-sentinel -Workspace sentinelws -SeveritiesToInclude High,Medium
+
+.EXAMPLE
+    ./EnableRules.ps1 -ResourceGroup rg-sentinel -Workspace sentinelws -SeveritiesToInclude High,Medium -OnlyInstalledConnectors
 
 .EXAMPLE
     ./EnableRules.ps1 -ResourceGroup rg-sentinel -Workspace sentinelws -WhatIf
@@ -47,6 +57,7 @@ param(
     [Parameter(Mandatory = $true)][string]$Workspace,
     [Parameter(Mandatory = $false)][string[]]$SeveritiesToInclude = @("High", "Medium", "Low", "Informational"),
     [Parameter(Mandatory = $false)][string[]]$Connectors,
+    [Parameter(Mandatory = $false)][switch]$OnlyInstalledConnectors,
     [Parameter(Mandatory = $false)][switch]$WhatIf
 )
 
@@ -69,6 +80,30 @@ $alertRulesBase = "$workspacePath/providers/Microsoft.SecurityInsights/alertRule
 $templatesApi = "2023-11-01"
 $rulesApi = "2023-02-01"
 $rulesApiNRT = "2023-12-01-preview"
+
+# When -OnlyInstalledConnectors is set, detect which tables actually have data
+# in the workspace, so we only create rules whose required connector data is
+# present (rules for connectors you did not install are skipped instead of
+# failing with 'table does not exist').
+$presentTables = @{}
+$detectTables = $false
+if ($OnlyInstalledConnectors) {
+    try {
+        $wsResp = Invoke-AzRestMethod -Path "$workspacePath`?api-version=2023-09-01" -Method GET -ErrorAction Stop
+        $customerId = ($wsResp.Content | ConvertFrom-Json).properties.customerId
+        if ($customerId) {
+            Write-Host "Detecting tables with data (Usage over last 30 days)..." -ForegroundColor Cyan
+            $q = "Usage | where TimeGenerated > ago(30d) | distinct DataType"
+            $qr = Invoke-AzOperationalInsightsQuery -WorkspaceId $customerId -Query $q -ErrorAction Stop
+            foreach ($row in $qr.Results) { if ($row.DataType) { $presentTables[("$($row.DataType)").ToLower()] = $true } }
+            $detectTables = $true
+            Write-Host ("  {0} tables have data; rules will be gated on installed connectors." -f $presentTables.Count) -ForegroundColor Cyan
+        }
+    }
+    catch {
+        Write-Warning "Could not detect installed-connector tables ($($_.Exception.Message)). Proceeding WITHOUT connector-data gating."
+    }
+}
 
 function Invoke-Arm {
     param(
@@ -152,7 +187,7 @@ while ($rnext) {
 Write-Host ("  {0} templates already in use (will be skipped)." -f $existingTemplateNames.Count) -ForegroundColor Cyan
 
 $created = 0; $skippedSeverity = 0; $skippedConnector = 0; $skippedKind = 0; $failed = 0
-$noMainTemplate = 0; $noRuleResource = 0; $skippedExisting = 0
+$noMainTemplate = 0; $noRuleResource = 0; $skippedExisting = 0; $skippedNoData = 0
 $createdBySeverity = @{ High = 0; Medium = 0; Low = 0; Informational = 0 }
 
 foreach ($tpl in $templates) {
@@ -192,13 +227,28 @@ foreach ($tpl in $templates) {
     # Skip templates that already have an active rule (idempotent re-runs)
     if ($contentId -and $existingTemplateNames.ContainsKey($contentId)) { $skippedExisting++; continue }
 
-    # Optional connector gating
+    # Optional connector gating (explicit list)
     if ($Connectors -and $tp.requiredDataConnectors) {
         $match = $false
         foreach ($rdc in $tp.requiredDataConnectors) {
             if ($rdc.connectorId -and ($Connectors -contains $rdc.connectorId)) { $match = $true; break }
         }
         if (-not $match) { $skippedConnector++; continue }
+    }
+
+    # Installed-connector gating: only create if at least one required data
+    # table actually has data in the workspace. Templates with no required
+    # connectors are always allowed (no dependency to check).
+    if ($detectTables -and $tp.requiredDataConnectors) {
+        $hasData = $false
+        foreach ($rdc in $tp.requiredDataConnectors) {
+            foreach ($dt in $rdc.dataTypes) {
+                $dtName = if ($dt -is [string]) { $dt } else { "$($dt.name)" }
+                if ($dtName -and $presentTables.ContainsKey($dtName.ToLower())) { $hasData = $true; break }
+            }
+            if ($hasData) { break }
+        }
+        if (-not $hasData) { $skippedNoData++; continue }
     }
 
     if ($WhatIf) {
@@ -277,6 +327,6 @@ else {
     Write-Host "Done. Created $created rules." -ForegroundColor Cyan
 }
 Write-Host ("  By severity: High={0} Medium={1} Low={2} Informational={3}" -f $createdBySeverity.High, $createdBySeverity.Medium, $createdBySeverity.Low, $createdBySeverity.Informational)
-Write-Host ("  Skipped: severity={0} connector={1} kind(non-Scheduled/NRT)={2} alreadyInUse={3} noMainTemplate={4} noRuleResource={5}  Failed: {6}" -f $skippedSeverity, $skippedConnector, $skippedKind, $skippedExisting, $noMainTemplate, $noRuleResource, $failed)
+Write-Host ("  Skipped: severity={0} connector={1} noConnectorData={2} kind(non-Scheduled/NRT)={3} alreadyInUse={4} noMainTemplate={5} noRuleResource={6}  Failed: {7}" -f $skippedSeverity, $skippedConnector, $skippedNoData, $skippedKind, $skippedExisting, $noMainTemplate, $noRuleResource, $failed)
 Write-Host ""
 Write-Host "Note: some Microsoft templates query tables you may not be ingesting yet; those individual rules can fail and are counted under 'Failed'. That is expected and does not stop the rest."
