@@ -478,9 +478,9 @@
     "outputs": {
         "enableAllTemplateRulesCommand": {
             "type": "string",
-            "value": "[concat('cd ~; irm https://raw.githubusercontent.com/wissamyanis/sentinel-all-in-one-defender/main/Scripts/EnableRules.ps1 -OutFile EnableRules.ps1; ./EnableRules.ps1 -ResourceGroup ', parameters('rgName'), ' -Workspace ', parameters('workspaceName'), ' -SeveritiesToInclude ', replace(replace(replace(string(parameters('severityLevels')),'\"',''),'[',''),']',''))]",
+            "value": "[concat('cd ~; irm https://raw.githubusercontent.com/wissamyanis/sentinel-all-in-one-defender/main/Scripts/EnableRules.ps1 -OutFile EnableRules.ps1; ./EnableRules.ps1 -ResourceGroup ', parameters('rgName'), ' -Workspace ', parameters('workspaceName'), ' -SeveritiesToInclude ', replace(replace(replace(string(parameters('severityLevels')),'\"',''),'[',''),']',''), ' -DeploymentConnectors ', replace(replace(replace(string(parameters('enableDataConnectors')),'\"',''),'[',''),']',''))]",
             "metadata": {
-                "description": "Copy this whole value into Azure Cloud Shell (PowerShell) after deployment. It downloads EnableRules.ps1 and instantiates every installed rule template whose severity matches the severities you selected in the wizard (they then show as 'IN USE' in the Content hub). Runs on your own sign-in, so it does not need the in-template deploymentScripts resource your tenant may block."
+                "description": "Copy this whole value into Azure Cloud Shell (PowerShell) after deployment. It downloads EnableRules.ps1 and enables every installed rule template that matches BOTH the severities and the data connectors you selected in the wizard (rules for connectors you did not select are skipped). The enabled templates then show as 'IN USE' in the Content hub. Runs on your own sign-in, so it does not need the in-template deploymentScripts resource your tenant may block. Ensure the correct subscription is the active Cloud Shell context first (Set-AzContext -Subscription <id>)."
             }
         }
     }

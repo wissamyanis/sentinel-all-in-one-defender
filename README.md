@@ -73,21 +73,32 @@ There are two layers of detections, and it's important to understand the differe
 
 The original v2 ran this script automatically via an in-template `Microsoft.Resources/deploymentScripts` resource. That resource type provisions a storage account + container instance using **storage account keys**, which many hardened tenants (including Defender-onboarded, policy-strict ones) **block** — so this fork runs the same script **manually** instead. Manual execution uses your own `Connect-AzAccount` sign-in, so there is nothing for the storage-key policy to block.
 
-**How to run it:** after the deployment completes, open the deployment's **Outputs** tab and copy the **`enableAllTemplateRulesCommand`** value. It is a complete, self-contained command **already filled in with the severities you selected in the wizard** — it downloads the script and runs it. Paste it into **Azure Cloud Shell (PowerShell)** and it creates a rule for every installed template matching your chosen severities. No need to retype severities or clone the repo.
+**How to run it:** after the deployment completes, open the deployment's **Outputs** tab and copy the **`enableAllTemplateRulesCommand`** value. It is a complete, self-contained command **already filled in with the severities and data connectors you selected in the wizard** — it downloads the script and runs it. Paste it into **Azure Cloud Shell (PowerShell)** and it creates a rule for every installed template that matches both your chosen severities and your selected connectors. No need to retype anything or clone the repo.
 
-You can also run it directly if you want to preview first or override the severities:
+> First make sure Cloud Shell's active subscription is the one you deployed into: `Set-AzContext -Subscription <subscriptionId>` (Cloud Shell often defaults to a different subscription).
+
+You can also run it directly. There are three ways to scope which rules are created:
 
 ```powershell
 # Preview how many rules would be created (nothing is created):
 ./EnableRules.ps1 -ResourceGroup <rg> -Workspace <workspace> -SeveritiesToInclude High,Medium -WhatIf
 
-# Create them:
+# Fresh deploy / live demo — enable rules for the connectors you selected (no data needed yet):
+./EnableRules.ps1 -ResourceGroup <rg> -Workspace <workspace> -SeveritiesToInclude High,Medium -DeploymentConnectors AzureActivity,MicrosoftDefenderForCloud,Office365,SecurityEvents,AzureActiveDirectory
+
+# Everything by severity (a few rules for un-selected connectors will fail-skip):
 ./EnableRules.ps1 -ResourceGroup <rg> -Workspace <workspace> -SeveritiesToInclude High,Medium
+
+# Mature workspace — enable only rules whose data is actually flowing (last 30 days):
+./EnableRules.ps1 -ResourceGroup <rg> -Workspace <workspace> -SeveritiesToInclude High,Medium -OnlyInstalledConnectors
 ```
 
-By default it enables **every installed template** whose severity you selected, across all installed solutions — pass `-Connectors AzureActiveDirectory,Office365,...` only if you want to additionally restrict to templates that require those specific connectors.
+Scoping options:
+- **`-DeploymentConnectors`** *(what the Outputs command uses)* — enable rules for the connectors you selected in the wizard. Best for a fresh deployment: it works day-zero, before any data has been ingested.
+- **`-OnlyInstalledConnectors`** — enable only rules whose required tables actually have data (last 30 days). Best on a mature workspace; on a fresh deploy it skips everything because no data has flowed yet.
+- neither — enable every installed template by severity; rules for connectors you did not deploy simply fail-skip with a warning.
 
-The script enumerates all installed analytics-rule templates via the Content Hub **`contentTemplates`** API, keeps those whose severity is in `-SeveritiesToInclude`, and creates a rule for each (linked to its template via `alertRuleTemplateName`, which is what stamps the template **IN USE**). It prints a per-severity count and lists any templates that failed (typically because their query references a table you are not ingesting yet — that is expected and does not stop the rest). Requires **Microsoft Sentinel Contributor** on the workspace.
+The script enumerates all installed analytics-rule templates via the Content Hub **`contentTemplates`** API, keeps those whose severity is in `-SeveritiesToInclude`, and creates a rule for each (linked to its template via `alertRuleTemplateName`, which is what stamps the template **IN USE**). It is **idempotent** — re-running skips templates already in use, so it is safe to run again to pick up stragglers. It prints a per-severity count and lists any templates that failed (typically a deprecated template or a query referencing a table you are not ingesting — expected, and it does not stop the rest). Requires **Microsoft Sentinel Contributor** on the workspace.
 
 > The original v2 enumerated solution rule templates through a `templateSpecs` Resource Graph query, which no longer returns them under the Content Hub model — that is why a straight port of the old script only enabled one or two rules. This version uses the current `contentTemplates` API instead.
 
