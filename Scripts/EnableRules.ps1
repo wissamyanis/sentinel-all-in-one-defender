@@ -98,17 +98,30 @@ while ($next) {
 Write-Host ("Found {0} installed analytics-rule templates." -f $templates.Count) -ForegroundColor Cyan
 
 $created = 0; $skippedSeverity = 0; $skippedConnector = 0; $skippedKind = 0; $failed = 0
+$noMainTemplate = 0; $noRuleResource = 0
 $createdBySeverity = @{ High = 0; Medium = 0; Low = 0; Informational = 0 }
 
 foreach ($tpl in $templates) {
     $contentId = $tpl.properties.contentId
     $version = $tpl.properties.version
     $main = $tpl.properties.mainTemplate
-    if (-not $main) { continue }
+
+    # The contentTemplates LIST response usually omits mainTemplate; fetch the
+    # full template by id to get it.
+    if (-not $main -and $tpl.id) {
+        $g = Invoke-Arm -Path "$($tpl.id)?api-version=$templatesApi"
+        if ($g.StatusCode -eq 200) {
+            $full = $g.Content | ConvertFrom-Json
+            $main = $full.properties.mainTemplate
+            if (-not $version) { $version = $full.properties.version }
+            if (-not $contentId) { $contentId = $full.properties.contentId }
+        }
+    }
+    if (-not $main) { $noMainTemplate++; continue }
 
     # Find the alertRule resource inside the template's mainTemplate
     $ruleRes = $main.resources | Where-Object { $_.type -match 'alertRules$' } | Select-Object -First 1
-    if (-not $ruleRes) { continue }
+    if (-not $ruleRes) { $noRuleResource++; continue }
 
     $kind = $ruleRes.kind
     if ($kind -ne 'Scheduled' -and $kind -ne 'NRT') { $skippedKind++; continue }
@@ -170,6 +183,6 @@ else {
     Write-Host "Done. Created $created rules." -ForegroundColor Cyan
 }
 Write-Host ("  By severity: High={0} Medium={1} Low={2} Informational={3}" -f $createdBySeverity.High, $createdBySeverity.Medium, $createdBySeverity.Low, $createdBySeverity.Informational)
-Write-Host ("  Skipped: severity={0} connector={1} kind(non-Scheduled/NRT)={2}  Failed: {3}" -f $skippedSeverity, $skippedConnector, $skippedKind, $failed)
+Write-Host ("  Skipped: severity={0} connector={1} kind(non-Scheduled/NRT)={2} noMainTemplate={3} noRuleResource={4}  Failed: {5}" -f $skippedSeverity, $skippedConnector, $skippedKind, $noMainTemplate, $noRuleResource, $failed)
 Write-Host ""
 Write-Host "Note: some Microsoft templates query tables you may not be ingesting yet; those individual rules can fail and are counted under 'Failed'. That is expected and does not stop the rest."
