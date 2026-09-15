@@ -519,8 +519,7 @@
                 "name": "enableScheduledAlerts",
                 "type": "Microsoft.Common.CheckBox",
                 "label": "Enable a curated set of built-in analytics rules (recommended)",
-                "defaultValue": true,
-                "toolTip": "Deploys a curated set of Microsoft incident-creation rules (for the selected Microsoft connectors) plus scheduled KQL detections for Entra ID sign-in/audit activity. These are native ARM rules - no deployment script.",
+                "toolTip": "Deploys a curated set of Microsoft incident-creation rules (for the selected Microsoft connectors) plus scheduled KQL detections for Entra ID sign-in/audit activity. These are native ARM rules - no deployment script. Leave unchecked to deploy no analytics rules.",
                 "constraints": {
                     "required": false,
                     "validationMessage": "Deploys the curated analytics rule set"
