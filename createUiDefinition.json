@@ -544,6 +544,16 @@
                     "required": false
                 },
                 "visible": "[steps('analyticsRules').enableScheduledAlerts]"
+            },
+            {
+                "name": "autoEnableRules",
+                "type": "Microsoft.Common.CheckBox",
+                "label": "Automatically enable ALL matching rule templates during deployment",
+                "toolTip": "When checked, the deployment runs a script (Microsoft.Resources/deploymentScripts) that instantiates every installed rule template matching your selected severities and connectors - no manual post-deployment step. IMPORTANT: this requires the tenant to allow deploymentScripts and storage account keys. On policy-strict or Defender-onboarded tenants that block them, leave this UNCHECKED and instead run the command from the deployment Outputs tab in Cloud Shell.",
+                "constraints": {
+                    "required": false
+                },
+                "visible": "[steps('analyticsRules').enableScheduledAlerts]"
             }
         ]
     }
@@ -566,7 +576,8 @@
       "aadStreams": "[steps('dataConnectors').aadStreams]",
       "enableMLAlerts": "[steps('analyticsRules').enableMLAlerts]",
       "severityLevels": "[steps('analyticsRules').severityLevels]",
-      "enableScheduledAlerts": "[steps('analyticsRules').enableScheduledAlerts]"
+      "enableScheduledAlerts": "[steps('analyticsRules').enableScheduledAlerts]",
+      "autoEnableRules": "[steps('analyticsRules').autoEnableRules]"
     }
   }
 }

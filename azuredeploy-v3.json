@@ -144,6 +144,13 @@
             },
             "defaultValue": false
         },
+        "autoEnableRules": {
+            "type": "bool",
+            "metadata": {
+                "description": "Automatically enable ALL installed rule templates (by severity + selected connectors) at deployment time using a deploymentScript. Requires the tenant to allow Microsoft.Resources/deploymentScripts and storage account key access. Leave false on policy-strict/Defender-onboarded tenants and run Scripts/EnableRules.ps1 manually instead."
+            },
+            "defaultValue": false
+        },
         "_artifactsLocation": {
             "type": "string",
             "metadata": {
@@ -418,6 +425,41 @@
                     },
                     "location": {
                         "value": "[parameters('location')]"
+                    }
+                }
+            }
+        },
+        {
+            "condition": "[parameters('autoEnableRules')]",
+            "name": "autoEnableRules",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "resourceGroup": "[parameters('rgName')]",
+            "dependsOn": [
+                "enableSolutions",
+                "enableDataConnectors"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[uri(parameters('_artifactsLocation'), 'LinkedTemplates/autoEnableRules.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "workspaceName": {
+                        "value": "[parameters('workspaceName')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "severityLevels": {
+                        "value": "[parameters('severityLevels')]"
+                    },
+                    "deploymentConnectors": {
+                        "value": "[parameters('enableDataConnectors')]"
+                    },
+                    "scriptUri": {
+                        "value": "[uri(parameters('_artifactsLocation'), 'Scripts/EnableRules.ps1')]"
                     }
                 }
             }
