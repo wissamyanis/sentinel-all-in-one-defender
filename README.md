@@ -73,14 +73,16 @@ There are two layers of detections, and it's important to understand the differe
 
 The original v2 ran this script automatically via an in-template `Microsoft.Resources/deploymentScripts` resource. That resource type provisions a storage account + container instance using **storage account keys**, which many hardened tenants (including Defender-onboarded, policy-strict ones) **block** — so this fork runs the same script **manually** instead. Manual execution uses your own `Connect-AzAccount` sign-in, so there is nothing for the storage-key policy to block.
 
-**How to run it:** after the deployment completes, open the deployment's **Outputs** and copy the `enableAllTemplateRulesCommand` value — it is a ready-to-run command with your chosen severities already filled in. Then, from the repo root in **Azure Cloud Shell (PowerShell)** or a local `Az`-authenticated PowerShell:
+**How to run it:** after the deployment completes, open the deployment's **Outputs** tab and copy the **`enableAllTemplateRulesCommand`** value. It is a complete, self-contained command **already filled in with the severities you selected in the wizard** — it downloads the script and runs it. Paste it into **Azure Cloud Shell (PowerShell)** and it creates a rule for every installed template matching your chosen severities. No need to retype severities or clone the repo.
+
+You can also run it directly if you want to preview first or override the severities:
 
 ```powershell
 # Preview how many rules would be created (nothing is created):
-./Scripts/EnableRules.ps1 -ResourceGroup <rg> -Workspace <workspace> -SeveritiesToInclude High,Medium -WhatIf
+./EnableRules.ps1 -ResourceGroup <rg> -Workspace <workspace> -SeveritiesToInclude High,Medium -WhatIf
 
 # Create them:
-./Scripts/EnableRules.ps1 -ResourceGroup <rg> -Workspace <workspace> -SeveritiesToInclude High,Medium
+./EnableRules.ps1 -ResourceGroup <rg> -Workspace <workspace> -SeveritiesToInclude High,Medium
 ```
 
 By default it enables **every installed template** whose severity you selected, across all installed solutions — pass `-Connectors AzureActiveDirectory,Office365,...` only if you want to additionally restrict to templates that require those specific connectors.
