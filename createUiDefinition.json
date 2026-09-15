@@ -525,6 +525,25 @@
                     "validationMessage": "Deploys the curated analytics rule set"
                 },
                 "visible": true
+            },
+            {
+                "name": "severityLevels",
+                "type": "Microsoft.Common.DropDown",
+                "label": "Analytics rule severities to enable",
+                "placeholder": "",
+                "multiselect": true,
+                "defaultValue": [{"value": "High"}, {"value": "Medium"}, {"value": "Low"}, {"value": "Informational"}],
+                "toolTip": "Choose which severities of the built-in scheduled (KQL) analytics rules to deploy. A scheduled rule is only created when its severity is selected here. Microsoft incident-creation rules inherit the source alert's severity and are not affected.",
+                "constraints": {
+                    "allowedValues": [
+                        { "label": "High", "value": "High" },
+                        { "label": "Medium", "value": "Medium" },
+                        { "label": "Low", "value": "Low" },
+                        { "label": "Informational", "value": "Informational" }
+                    ],
+                    "required": false
+                },
+                "visible": "[steps('analyticsRules').enableScheduledAlerts]"
             }
         ]
     }
@@ -546,6 +565,7 @@
       "securityEventSet": "[steps('dataConnectors').securityEventSet]",
       "aadStreams": "[steps('dataConnectors').aadStreams]",
       "enableMLAlerts": "[steps('analyticsRules').enableMLAlerts]",
+      "severityLevels": "[steps('analyticsRules').severityLevels]",
       "enableScheduledAlerts": "[steps('analyticsRules').enableScheduledAlerts]"
     }
   }

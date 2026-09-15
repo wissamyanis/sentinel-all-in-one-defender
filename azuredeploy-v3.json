@@ -70,7 +70,7 @@
             "metadata": {
                 "description": "Severity levels desired for Analytics Rules"
             },
-            "defaultValue": []
+            "defaultValue": [ "High", "Medium", "Low", "Informational" ]
         },
         "securityEventSet": {
             "type": "string",
@@ -412,6 +412,9 @@
                     },
                     "dataConnectorsKind": {
                         "value": "[parameters('enableDataConnectors')]"
+                    },
+                    "severityLevels": {
+                        "value": "[parameters('severityLevels')]"
                     },
                     "location": {
                         "value": "[parameters('location')]"

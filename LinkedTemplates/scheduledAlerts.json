@@ -28,6 +28,13 @@
             "metadata": {
                 "description": "Seed for unique rule names."
             }
+        },
+        "severityLevels": {
+            "type": "array",
+            "defaultValue": [ "High", "Medium", "Low", "Informational" ],
+            "metadata": {
+                "description": "Severities to deploy for the scheduled KQL rules. A scheduled rule is only created when its severity is in this list."
+            }
         }
     },
     "variables": {
@@ -97,6 +104,7 @@
             }
         },
         {
+            "condition": "[contains(parameters('severityLevels'), 'Medium')]",
             "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
             "name": "[concat(parameters('workspaceName'),'/Microsoft.SecurityInsights/',variables('schedFailedSignins'))]",
             "apiVersion": "2023-02-01",
@@ -142,6 +150,7 @@
             }
         },
         {
+            "condition": "[contains(parameters('severityLevels'), 'High')]",
             "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
             "name": "[concat(parameters('workspaceName'),'/Microsoft.SecurityInsights/',variables('schedPrivRole'))]",
             "apiVersion": "2023-02-01",
@@ -188,6 +197,7 @@
             }
         },
         {
+            "condition": "[contains(parameters('severityLevels'), 'High')]",
             "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
             "name": "[concat(parameters('workspaceName'),'/Microsoft.SecurityInsights/',variables('schedAppCred'))]",
             "apiVersion": "2023-02-01",
