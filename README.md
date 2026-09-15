@@ -73,15 +73,23 @@ There are two layers of detections, and it's important to understand the differe
 
 The original v2 ran this script automatically via an in-template `Microsoft.Resources/deploymentScripts` resource. That resource type provisions a storage account + container instance using **storage account keys**, which many hardened tenants (including Defender-onboarded, policy-strict ones) **block** — so this fork runs the same script **manually** instead. Manual execution uses your own `Connect-AzAccount` sign-in, so there is nothing for the storage-key policy to block.
 
-**How to run it:** after the deployment completes, open the deployment's **Outputs** and copy the `enableAllTemplateRulesCommand` value — it is a ready-to-run command with your chosen severities and connectors already filled in. Then, from the repo root in **Azure Cloud Shell (PowerShell)** or a local `Az`-authenticated PowerShell:
+**How to run it:** after the deployment completes, open the deployment's **Outputs** and copy the `enableAllTemplateRulesCommand` value — it is a ready-to-run command with your chosen severities already filled in. Then, from the repo root in **Azure Cloud Shell (PowerShell)** or a local `Az`-authenticated PowerShell:
 
 ```powershell
-./Scripts/EnableRules.ps1 -ResourceGroup <rg> -Workspace <workspace> -SeveritiesToInclude High,Medium -Connectors AzureActiveDirectory,Office365,AzureActivity
+# Preview how many rules would be created (nothing is created):
+./Scripts/EnableRules.ps1 -ResourceGroup <rg> -Workspace <workspace> -SeveritiesToInclude High,Medium -WhatIf
+
+# Create them:
+./Scripts/EnableRules.ps1 -ResourceGroup <rg> -Workspace <workspace> -SeveritiesToInclude High,Medium
 ```
 
-The script enumerates every installed alert-rule template, keeps those whose severity is in `-SeveritiesToInclude`, and creates a rule for each (linked to its template via `alertRuleTemplateName`, which is what stamps the template **IN USE**). It processes both connector-based templates and solution-based templates, so all installed solutions' rules are enabled by severity. Requires **Microsoft Sentinel Contributor** on the workspace.
+By default it enables **every installed template** whose severity you selected, across all installed solutions — pass `-Connectors AzureActiveDirectory,Office365,...` only if you want to additionally restrict to templates that require those specific connectors.
 
-> Prefer to keep it fully automatic on a permissive tenant? Re-add the v2 `deploymentScripts` wrapper (`ARMTemplates/v2/LinkedTemplates/scheduledAlerts.json` upstream) — but only where `deploymentScripts` and storage account keys are allowed.
+The script enumerates all installed analytics-rule templates via the Content Hub **`contentTemplates`** API, keeps those whose severity is in `-SeveritiesToInclude`, and creates a rule for each (linked to its template via `alertRuleTemplateName`, which is what stamps the template **IN USE**). It prints a per-severity count and lists any templates that failed (typically because their query references a table you are not ingesting yet — that is expected and does not stop the rest). Requires **Microsoft Sentinel Contributor** on the workspace.
+
+> The original v2 enumerated solution rule templates through a `templateSpecs` Resource Graph query, which no longer returns them under the Content Hub model — that is why a straight port of the old script only enabled one or two rules. This version uses the current `contentTemplates` API instead.
+
+> Prefer to keep it fully automatic on a permissive tenant? Re-add the v2 `deploymentScripts` wrapper (`ARMTemplates/v2/LinkedTemplates/scheduledAlerts.json` upstream) pointing at this script — but only where `deploymentScripts` and storage account keys are allowed.
 
 
 ## Connecting the workspace to the Defender portal

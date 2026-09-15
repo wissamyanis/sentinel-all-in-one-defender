@@ -1,309 +1,175 @@
+<#
+.SYNOPSIS
+    Enables Microsoft Sentinel analytics rules from installed rule templates,
+    filtered by severity. This is the Content Hub-era replacement for the
+    original v2 EnableRules.ps1 (which enumerated solution rule templates via
+    a templateSpecs Resource Graph query that no longer returns them).
+
+.DESCRIPTION
+    Sentinel now exposes every installed solution's analytics-rule templates
+    through the contentTemplates API (Microsoft.SecurityInsights/contentTemplates).
+    This script enumerates those templates, keeps the ones whose severity is in
+    -SeveritiesToInclude, and creates an active alert rule for each - linked to
+    its template via alertRuleTemplateName, which is what makes the template
+    show as "IN USE" in the Content hub.
+
+    It runs entirely with your own Az sign-in (Invoke-AzRestMethod), so it does
+    NOT require the Microsoft.Resources/deploymentScripts resource (and the
+    storage account keys it needs) that the original v2 template used and that
+    many hardened / Defender-onboarded tenants block.
+
+.PARAMETER ResourceGroup
+    Resource group that contains the Log Analytics workspace.
+
+.PARAMETER Workspace
+    Log Analytics / Sentinel workspace name.
+
+.PARAMETER SeveritiesToInclude
+    Severities to enable. Default: High, Medium, Low, Informational.
+
+.PARAMETER Connectors
+    Optional. When supplied, a template is only enabled if at least one of its
+    required data connectors is in this list. Omit to enable every installed
+    template that matches the severity filter (the behaviour most people want).
+
+.PARAMETER WhatIf
+    Preview only: report how many rules would be created, per severity, without
+    creating anything.
+
+.EXAMPLE
+    ./EnableRules.ps1 -ResourceGroup rg-sentinel -Workspace sentinelws -SeveritiesToInclude High,Medium
+
+.EXAMPLE
+    ./EnableRules.ps1 -ResourceGroup rg-sentinel -Workspace sentinelws -WhatIf
+#>
 param(
     [Parameter(Mandatory = $true)][string]$ResourceGroup,
     [Parameter(Mandatory = $true)][string]$Workspace,
+    [Parameter(Mandatory = $false)][string[]]$SeveritiesToInclude = @("High", "Medium", "Low", "Informational"),
     [Parameter(Mandatory = $false)][string[]]$Connectors,
-    [Parameter(Mandatory = $false)][string[]]$SeveritiesToInclude = @("Informational", "Low", "Medium", "High")
+    [Parameter(Mandatory = $false)][switch]$WhatIf
 )
 
-$context = Get-AzContext
+$ErrorActionPreference = "Stop"
 
+$context = Get-AzContext
 if (!$context) {
-    Connect-AzAccount
+    Connect-AzAccount | Out-Null
     $context = Get-AzContext
 }
-
 $SubscriptionId = $context.Subscription.Id
+Write-Host "Connected to subscription: $($context.Subscription.Name) ($SubscriptionId)" -ForegroundColor Cyan
 
-Write-Host "Connected to Azure with subscription: " + $context.Subscription
+# Normalize severities for case-insensitive comparison
+$sevSet = @{}
+foreach ($s in $SeveritiesToInclude) { $sevSet[$s.Trim().ToLower()] = $true }
 
-$baseUri = "/subscriptions/${SubscriptionId}/resourceGroups/${ResourceGroup}/providers/Microsoft.OperationalInsights/workspaces/${Workspace}"
-$templatesUri = "$baseUri/providers/Microsoft.SecurityInsights/alertRuleTemplates?api-version=2023-02-01"
-$alertUri = "$baseUri/providers/Microsoft.SecurityInsights/alertRules/"
+$workspacePath = "/subscriptions/$SubscriptionId/resourceGroups/$ResourceGroup/providers/Microsoft.OperationalInsights/workspaces/$Workspace"
+$alertRulesBase = "$workspacePath/providers/Microsoft.SecurityInsights/alertRules"
+$templatesApi = "2023-11-01"
+$rulesApi = "2023-02-01"
 
-
-try {
-    $alertRulesTemplates = ((Invoke-AzRestMethod -Path $templatesUri -Method GET).Content | ConvertFrom-Json).value
+function Invoke-Arm {
+    param([string]$Path, [string]$FullUri, [string]$Method = "GET", [string]$Payload)
+    $params = @{ Method = $Method }
+    if ($FullUri) { $params["Uri"] = $FullUri } else { $params["Path"] = $Path }
+    if ($Payload) { $params["Payload"] = $Payload }
+    return Invoke-AzRestMethod @params
 }
-catch {
-    Write-Verbose $_
-    Write-Error "Unable to get alert rules with error code: $($_.Exception.Message)" -ErrorAction Stop
+
+Write-Host "Enumerating installed analytics-rule templates (contentTemplates)..." -ForegroundColor Cyan
+
+$templates = New-Object System.Collections.Generic.List[object]
+$filter = [System.Uri]::EscapeDataString("properties/contentKind eq 'AnalyticsRule'")
+$next = "$workspacePath/providers/Microsoft.SecurityInsights/contentTemplates?api-version=$templatesApi&`$filter=$filter"
+$isRelative = $true
+
+while ($next) {
+    if ($isRelative) { $resp = Invoke-Arm -Path $next } else { $resp = Invoke-Arm -FullUri $next }
+    if ($resp.StatusCode -ne 200) {
+        Write-Warning "contentTemplates request returned HTTP $($resp.StatusCode): $($resp.Content)"
+        break
+    }
+    $page = $resp.Content | ConvertFrom-Json
+    if ($page.value) { foreach ($v in $page.value) { $templates.Add($v) } }
+    if ($page.nextLink) { $next = $page.nextLink; $isRelative = $false } else { $next = $null }
 }
 
-$return = @()
+Write-Host ("Found {0} installed analytics-rule templates." -f $templates.Count) -ForegroundColor Cyan
 
-if ($Connectors) {
-    foreach ($item in $alertRulesTemplates) {
-        #Make sure that the template's severity is one we want to include
-        if ($SeveritiesToInclude.Contains($item.properties.severity)) {
-            switch ($item.kind) {
-                "Scheduled" {
-                    foreach ($connector in $item.properties.requiredDataConnectors) {
-                        if ($connector.connectorId -in $Connectors) {
-                            #$return += $item.properties
-                            $guid = New-Guid
-                            $alertUriGuid = $alertUri + $guid + '?api-version=2023-02-01'
+$created = 0; $skippedSeverity = 0; $skippedConnector = 0; $skippedKind = 0; $failed = 0
+$createdBySeverity = @{ High = 0; Medium = 0; Low = 0; Informational = 0 }
 
-                            $properties = @{
-                                displayName           = $item.properties.displayName
-                                enabled               = $true
-                                suppressionDuration   = "PT5H"
-                                suppressionEnabled    = $false
-                                alertRuleTemplateName = $item.name
-                                description           = $item.properties.description
-                                query                 = $item.properties.query
-                                queryFrequency        = $item.properties.queryFrequency
-                                queryPeriod           = $item.properties.queryPeriod
-                                severity              = $item.properties.severity
-                                tactics               = $item.properties.tactics
-                                triggerOperator       = $item.properties.triggerOperator
-                                triggerThreshold      = $item.properties.triggerThreshold
-                                techniques            = $item.properties.techniques
-                                eventGroupingSettings = $item.properties.eventGroupingSettings
-                                templateVersion       = $item.properties.version
-                                entityMappings        = $item.properties.entityMappings
-                            }
+foreach ($tpl in $templates) {
+    $contentId = $tpl.properties.contentId
+    $version = $tpl.properties.version
+    $main = $tpl.properties.mainTemplate
+    if (-not $main) { continue }
 
-                            $alertBody = @{}
-                            $alertBody | Add-Member -NotePropertyName kind -NotePropertyValue $item.kind -Force
-                            $alertBody | Add-Member -NotePropertyName properties -NotePropertyValue $properties
+    # Find the alertRule resource inside the template's mainTemplate
+    $ruleRes = $main.resources | Where-Object { $_.type -match 'alertRules$' } | Select-Object -First 1
+    if (-not $ruleRes) { continue }
 
-                            try {
-                                Invoke-AzRestMethod -Path $alertUriGuid -Method PUT -Payload ($alertBody | ConvertTo-Json -Depth 3)
-                            }
-                            catch {
-                                Write-Host "Can't enable rule template with connectors: " $item.properties.requiredDataConnectors
-                                Write-Verbose $_
-                                Write-Error "Unable to create alert rule with error code: $($_.Exception.Message)" -ErrorAction Stop
-                            }
+    $kind = $ruleRes.kind
+    if ($kind -ne 'Scheduled' -and $kind -ne 'NRT') { $skippedKind++; continue }
 
-                            break
-                        }
-                    }
-                }
-                "NRT" {
-                    foreach ($connector in $item.properties.requiredDataConnectors) {
-                        if ($connector.connectorId -in $Connectors) {
-                            #$return += $item.properties
-                            $guid = New-Guid
-                            $alertUriGuid = $alertUri + $guid + '?api-version=2023-02-01'
+    $props = $ruleRes.properties
+    $severity = "$($props.severity)"
+    if (-not $severity -or -not $sevSet.ContainsKey($severity.ToLower())) { $skippedSeverity++; continue }
 
-                            $properties = @{
-                                displayName           = $item.properties.displayName
-                                enabled               = $true
-                                suppressionDuration   = "PT5H"
-                                suppressionEnabled    = $false
-                                alertRuleTemplateName = $item.name
-                                description           = $item.properties.description
-                                query                 = $item.properties.query
-                                severity              = $item.properties.severity
-                                tactics               = $item.properties.tactics
-                                techniques            = $item.properties.techniques
-                                eventGroupingSettings = $item.properties.eventGroupingSettings
-                                templateVersion       = $item.properties.version
-                                entityMappings        = $item.properties.entityMappings
-                            }
-
-                            $alertBody = @{}
-                            $alertBody | Add-Member -NotePropertyName kind -NotePropertyValue $item.kind -Force
-                            $alertBody | Add-Member -NotePropertyName properties -NotePropertyValue $properties
-
-                            try {
-                                Invoke-AzRestMethod -Path $alertUriGuid -Method PUT -Payload ($alertBody | ConvertTo-Json -Depth 3)
-                            }
-                            catch {
-                                Write-Host "Can't enable rule template with connectors: " $item.properties.requiredDataConnectors
-                                Write-Verbose $_
-                                Write-Error "Unable to create alert rule with error code: $($_.Exception.Message)" -ErrorAction Stop
-                            }
-
-                            break
-                        }
-                    }
-                }
-            }
+    # Optional connector gating
+    if ($Connectors -and $props.requiredDataConnectors) {
+        $match = $false
+        foreach ($rdc in $props.requiredDataConnectors) {
+            if ($rdc.connectorId -and ($Connectors -contains $rdc.connectorId)) { $match = $true; break }
         }
-    
+        if (-not $match) { $skippedConnector++; continue }
+    }
+
+    if ($WhatIf) {
+        $created++
+        if ($createdBySeverity.ContainsKey($severity)) { $createdBySeverity[$severity]++ }
+        continue
+    }
+
+    # Build the rule body from the template's own rule properties, then force the
+    # fields required to make it an active, template-linked rule.
+    $body = @{ kind = $kind; properties = @{} }
+    foreach ($prop in $props.PSObject.Properties) { $body.properties[$prop.Name] = $prop.Value }
+    $body.properties["enabled"] = $true
+    $body.properties["alertRuleTemplateName"] = $contentId
+    $body.properties["templateVersion"] = $version
+    if (-not $body.properties.ContainsKey("suppressionDuration")) { $body.properties["suppressionDuration"] = "PT5H" }
+    if (-not $body.properties.ContainsKey("suppressionEnabled")) { $body.properties["suppressionEnabled"] = $false }
+
+    $guid = [guid]::NewGuid().ToString()
+    $ruleUri = "$alertRulesBase/$guid`?api-version=$rulesApi"
+    try {
+        $put = Invoke-Arm -Path $ruleUri -Method "PUT" -Payload ($body | ConvertTo-Json -Depth 20)
+        if ($put.StatusCode -ge 200 -and $put.StatusCode -lt 300) {
+            $created++
+            if ($createdBySeverity.ContainsKey($severity)) { $createdBySeverity[$severity]++ }
+            Write-Host ("  + [{0}] {1}" -f $severity, $props.displayName) -ForegroundColor Green
+        }
+        else {
+            $failed++
+            Write-Warning ("  ! Failed [{0}] {1} -> HTTP {2}: {3}" -f $severity, $props.displayName, $put.StatusCode, $put.Content)
+        }
+    }
+    catch {
+        $failed++
+        Write-Warning ("  ! Error [{0}] {1} -> {2}" -f $severity, $props.displayName, $_.Exception.Message)
     }
 }
 
-#####
-#create rules from any rule templates that came from solutions
-#####
-
-$solutionURL = "https://management.azure.com/providers/Microsoft.ResourceGraph/resources?api-version=2021-03-01"
-  
-#We only care about those rule templates that were created by Microsoft Sentinel solutions so
-#this query will make sure to filter out anything else as well as provide some overview data (which is not used)
-$query = @"
-    Resources 
-    | where type =~ 'Microsoft.Resources/templateSpecs/versions' 
-    | where tags['hidden-sentinelContentType'] =~ 'AnalyticsRule' 
-    and tags['hidden-sentinelWorkspaceId'] =~ '/subscriptions/$($subscriptionId)/resourceGroups/$($ResourceGroup)/providers/Microsoft.OperationalInsights/workspaces/$($Workspace)' 
-    | extend version = name 
-    | extend parsed_version = parse_version(version) 
-    | extend resources = parse_json(parse_json(parse_json(properties).template).resources) 
-    | extend metadata = parse_json(resources[array_length(resources)-1].properties)
-    | extend contentId=tostring(metadata.contentId) 
-    | summarize arg_max(parsed_version, version, properties) by contentId 
-    | project contentId, version, properties
-"@
-
-$body = @{
-    "subscriptions" = @($SubscriptionId)
-    "query"         = $query
+Write-Host ""
+if ($WhatIf) {
+    Write-Host "WHATIF: would create $created rules." -ForegroundColor Yellow
 }
-
-$azureProfile = [Microsoft.Azure.Commands.Common.Authentication.Abstractions.AzureRmProfileProvider]::Instance.Profile
-$profileClient = New-Object -TypeName Microsoft.Azure.Commands.ResourceManager.Common.RMProfileClient -ArgumentList ($azureProfile)
-$token = $profileClient.AcquireAccessToken($context.Subscription.TenantId)
-$authHeader = @{
-    'Content-Type'  = 'application/json'
-    'Authorization' = 'Bearer ' + $token.AccessToken
+else {
+    Write-Host "Done. Created $created rules." -ForegroundColor Cyan
 }
-
-#Load all the rule templates from solutions
-$results = Invoke-RestMethod -Uri $solutionURL -Method POST -Headers $authHeader -Body ($body | ConvertTo-Json -EnumsAsStrings -Depth 5)
-Write-Host "results..." $results
-
-
-#Iterate through all the rule templates
-foreach ($result in $results.data) {
-    #Make sure that the template's severity is one we want to include
-    $severity = $result.properties.template.resources.properties.severity[0]
-    Write-Host "Severity is... " $severity " of type " $severity.GetType()
-    Write-Host "Severities to include..." $SeveritiesToInclude
-    Write-Host "condition is..." $SeveritiesToInclude.Contains($severity)   
-    if ($SeveritiesToInclude.Contains($severity)) {
-        Write-Host "Enabling solution rule template... " $result.properties.template.resources.properties.displayName
-        #Get to the actual template data
-        $template = $result.properties.template.resources.properties
-        $kind = $result.properties.template.resources.kind
-        $name = $result.contentId
-        $body = ""
-
-        #For some reason there is a null as the last entry in the tactics array so we need to remove it
-        $tactics = ""
-        # If there is only 1 entry and the null, then if we return just the entry, it gets returned
-        # as a string so we need to make sure we return an array
-        if ($template.tactics.Count -eq 2) {
-            [String[]]$tactics = $template.tactics[0]
-        }
-        else {
-            #Return only those entries that are not null
-            $tactics = $template.tactics | Where-Object { $_ -ne $null }
-        }
-
-        #For some reason there is a null as the last entry in the techniques array so we need to remove it
-        $techniques = ""
-        # If there is only 1 entry and the null, then if we return just the entry, it gets returned
-        # as a string so we need to make sure we return an array
-        if ($template.techniques.Count -eq 2) {
-            [String[]]$techniques = $template.techniques[0]
-        }
-        else {
-            #Return only those entries that are not null
-            $techniques = $template.techniques | Where-Object { $_ -ne $null }
-        }
-
-        #For some reason there is a null as the last entry in the entities array so we need to remove it as well
-        #as any entry that is just ".nan"
-        $entityMappings = $template.entityMappings  | Where-Object { $_ -ne $null } | Where-Object { $_ -ne ".nan" }
-        #If the arrary of EntityMappings only contained one entry, it will not be returned as an arry
-        # so we need to convert it into JSON while forcing it to be an array and then convert it back
-        # without enumerating the output so that it remains an array
-        if ($null -ne $entityMappings) {
-            if ($entityMappings.GetType().BaseType.Name -ne "Array") {
-                $entityMappings = $entityMappings | ConvertTo-Json -Depth 5 -AsArray | ConvertFrom-Json -NoEnumerate
-            }
-        }
-        #Some entity mappings are stored as empty strings (not sure why) so we need 
-        #to check for that and set to null if it is empty so no error gets thrown
-        if ([String]::IsNullOrWhiteSpace($entityMappings)) {
-            $entityMappings = $null
-        }
-
-        #Depending on the type of alert we are creating, the body has different parameters
-        switch ($kind) {
-            #Have not seen any Microsoft Security rule templates coming from solutions
-            "MicrosoftSecurityIncidentCreation" {  
-                $body = @{
-                    "kind"       = "MicrosoftSecurityIncidentCreation"
-                    "properties" = @{
-                        "enabled"       = "true"
-                        "productFilter" = $template.productFilter
-                        "displayName"   = $template.displayName
-                    }
-                }
-            }
-            "NRT" {
-                #For some reason, all the string values are returned as arrays (with null as the second entry)
-                #and we only care about the first entry hence the [0] after everything
-                $body = @{
-                    "kind"       = "NRT"
-                    "properties" = @{
-                        "enabled"               = "true"
-                        "alertRuleTemplateName" = $name
-                        "displayName"           = $template.displayName[0]
-                        "description"           = $template.description[0]
-                        "severity"              = $template.severity[0]
-                        "tactics"               = $tactics
-                        "techniques"            = $techniques
-                        "query"                 = $template.query[0]
-                        "suppressionDuration"   = "PT5H"
-                        "suppressionEnabled"    = $false
-                        "eventGroupingSettings" = $template.eventGroupingSettings[0]
-                        "templateVersion"       = $template.version[0]
-                        "entityMappings"        = $entityMappings
-                    }
-                }
-            }
-            "Scheduled" {
-                #For some reason, all the string values are returned as arrays (with null as the second entry)
-                #and we only care about the first entry hence the [0] after everything
-                $body = @{
-                    "kind"       = "Scheduled"
-                    "properties" = @{
-                        "enabled"               = "true"
-                        "alertRuleTemplateName" = $name
-                        "displayName"           = $template.displayName[0]
-                        "description"           = $template.description[0]
-                        "severity"              = $template.severity[0]
-                        "tactics"               = $tactics
-                        "techniques"            = $techniques
-                        "query"                 = $template.query[0]
-                        "queryFrequency"        = $template.queryFrequency[0]
-                        "queryPeriod"           = $template.queryPeriod[0]
-                        "triggerOperator"       = $template.triggerOperator[0]
-                        "triggerThreshold"      = $template.triggerThreshold[0]
-                        "suppressionDuration"   = "PT5H"
-                        "suppressionEnabled"    = $false
-                        "eventGroupingSettings" = $template.eventGroupingSettings[0]
-                        "templateVersion"       = $template.version[0]
-                        "entityMappings"        = $entityMappings
-                    }
-                }
-            }
-            #Hopefully this won't be accessed
-            Default { }
-        }
-        #If we have created the body...
-        if ("" -ne $body) {
-            #Create the GUId for the alert.
-            $guid = New-Guid
-
-            #Create the URI we need to create the alert.  Using the latest and greatest API call
-            $alertUriGuid = $alertUri + $guid + '?api-version=2023-02-01'
-
-            try {
-                Invoke-AzRestMethod -Path $alertUriGuid -Method PUT -Payload ($body | ConvertTo-Json -EnumsAsStrings -Depth 5)
-            }
-            catch {
-                #Most likely any errors are due to the rule template having errors, typically in the query
-                Write-Verbose $_
-                Write-Error "Unable to create alert rule with error code: $($_.Exception.Message)" -ErrorAction Stop
-            }
-        }
-    }
-}
-
-return $return
+Write-Host ("  By severity: High={0} Medium={1} Low={2} Informational={3}" -f $createdBySeverity.High, $createdBySeverity.Medium, $createdBySeverity.Low, $createdBySeverity.Informational)
+Write-Host ("  Skipped: severity={0} connector={1} kind(non-Scheduled/NRT)={2}  Failed: {3}" -f $skippedSeverity, $skippedConnector, $skippedKind, $failed)
+Write-Host ""
+Write-Host "Note: some Microsoft templates query tables you may not be ingesting yet; those individual rules can fail and are counted under 'Failed'. That is expected and does not stop the rest."

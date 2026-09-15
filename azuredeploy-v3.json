@@ -478,7 +478,7 @@
     "outputs": {
         "enableAllTemplateRulesCommand": {
             "type": "string",
-            "value": "[concat('./Scripts/EnableRules.ps1 -ResourceGroup ', parameters('rgName'), ' -Workspace ', parameters('workspaceName'), ' -SeveritiesToInclude ', replace(replace(replace(string(parameters('severityLevels')),'\"',''),'[',''),']',''), ' -Connectors ', replace(replace(replace(string(parameters('enableDataConnectors')),'\"',''),'[',''),']',''))]",
+            "value": "[concat('./Scripts/EnableRules.ps1 -ResourceGroup ', parameters('rgName'), ' -Workspace ', parameters('workspaceName'), ' -SeveritiesToInclude ', replace(replace(replace(string(parameters('severityLevels')),'\"',''),'[',''),']',''))]",
             "metadata": {
                 "description": "Run this in Cloud Shell (PowerShell) from the repo root after deployment to instantiate all installed rule templates that match the selected severities and connectors (they show as 'IN USE' in the Content hub). This is the v2 enable-all behavior, triggered manually so it does not require the in-template deploymentScripts resource your tenant may block."
             }
