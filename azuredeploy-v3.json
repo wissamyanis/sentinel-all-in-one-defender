@@ -55,6 +55,16 @@
             },
             "defaultValue": []
         },
+        "aadStreams": {
+            "type": "array",
+            "metadata": {
+                "description": "Which Microsoft Entra ID diagnostic log categories to stream when the Entra ID connector is selected."
+            },
+            "defaultValue": [
+                "SignInLogs",
+                "AuditLogs"
+            ]
+        },
         "severityLevels": {
             "type": "array",
             "metadata": {
@@ -445,14 +455,18 @@
             "properties": {
                 "workspaceId": "[reference('workspaceCreation').outputs.workspaceResourceId.value]",
                 "logs": [
-                    {
-                        "category": "SignInLogs",
-                        "enabled": true
-                    },
-                    {
-                        "category": "AuditLogs",
-                        "enabled": true
-                    }
+                    { "category": "SignInLogs", "enabled": "[contains(parameters('aadStreams'),'SignInLogs')]" },
+                    { "category": "AuditLogs", "enabled": "[contains(parameters('aadStreams'),'AuditLogs')]" },
+                    { "category": "NonInteractiveUserSignInLogs", "enabled": "[contains(parameters('aadStreams'),'NonInteractiveUserSignInLogs')]" },
+                    { "category": "ServicePrincipalSignInLogs", "enabled": "[contains(parameters('aadStreams'),'ServicePrincipalSignInLogs')]" },
+                    { "category": "ManagedIdentitySignInLogs", "enabled": "[contains(parameters('aadStreams'),'ManagedIdentitySignInLogs')]" },
+                    { "category": "ProvisioningLogs", "enabled": "[contains(parameters('aadStreams'),'ProvisioningLogs')]" },
+                    { "category": "ADFSSignInLogs", "enabled": "[contains(parameters('aadStreams'),'ADFSSignInLogs')]" },
+                    { "category": "UserRiskEvents", "enabled": "[contains(parameters('aadStreams'),'UserRiskEvents')]" },
+                    { "category": "RiskyUsers", "enabled": "[contains(parameters('aadStreams'),'RiskyUsers')]" },
+                    { "category": "NetworkAccessTrafficLogs", "enabled": "[contains(parameters('aadStreams'),'NetworkAccessTrafficLogs')]" },
+                    { "category": "RiskyServicePrincipals", "enabled": "[contains(parameters('aadStreams'),'RiskyServicePrincipals')]" },
+                    { "category": "ServicePrincipalRiskEvents", "enabled": "[contains(parameters('aadStreams'),'ServicePrincipalRiskEvents')]" }
                 ],
                  "metrics": []
             }

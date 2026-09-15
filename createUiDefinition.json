@@ -474,6 +474,33 @@
                     "required": true
                 },
                 "visible": "[contains(steps('dataConnectors').enableDataConnectors, 'SecurityEvents')]"
+            },
+            {
+                "name": "aadStreams",
+                "type": "Microsoft.Common.DropDown",
+                "label": "Microsoft Entra ID log types to stream",
+                "placeholder": "",
+                "multiselect": true,
+                "defaultValue": [{"value": "SignInLogs"}, {"value": "AuditLogs"}],
+                "toolTip": "Select which Microsoft Entra ID diagnostic log categories to stream to the workspace.",
+                "constraints": {
+                    "allowedValues": [
+                        { "label": "Sign-in Logs", "value": "SignInLogs" },
+                        { "label": "Audit Logs", "value": "AuditLogs" },
+                        { "label": "Non-Interactive User Sign-in Logs", "value": "NonInteractiveUserSignInLogs" },
+                        { "label": "Service Principal Sign-in Logs", "value": "ServicePrincipalSignInLogs" },
+                        { "label": "Managed Identity Sign-in Logs", "value": "ManagedIdentitySignInLogs" },
+                        { "label": "Provisioning Logs", "value": "ProvisioningLogs" },
+                        { "label": "ADFS Sign-in Logs", "value": "ADFSSignInLogs" },
+                        { "label": "User Risk Events", "value": "UserRiskEvents" },
+                        { "label": "Risky Users", "value": "RiskyUsers" },
+                        { "label": "Network Access Traffic Logs", "value": "NetworkAccessTrafficLogs" },
+                        { "label": "Risky Service Principals", "value": "RiskyServicePrincipals" },
+                        { "label": "Service Principal Risk Events", "value": "ServicePrincipalRiskEvents" }
+                    ],
+                    "required": false
+                },
+                "visible": "[contains(steps('dataConnectors').enableDataConnectors, 'AzureActiveDirectory')]"
             }
         ]
     },
@@ -532,6 +559,7 @@
       "enableSolutions": "[steps('solutions').enableSolutions]",
       "enableDataConnectors": "[steps('dataConnectors').enableDataConnectors]",
       "securityEventSet": "[steps('dataConnectors').securityEventSet]",
+      "aadStreams": "[steps('dataConnectors').aadStreams]",
       "enableMLAlerts": "[steps('analyticsRules').enableMLAlerts]",
       "enableScheduledAlerts": "[steps('analyticsRules').enableScheduledAlerts]"
     }
