@@ -64,6 +64,26 @@ Click the button, complete the wizard (Basics, Settings, Content Hub Solutions, 
 - After pushing template changes to GitHub, allow a few minutes for the raw CDN cache to refresh, and fully reload the Deploy blade, before deploying.
 - Keep the default connector selection for a guaranteed-green deploy; add license-gated connectors only when you know the tenant supports them (a failing connector fails the whole deployment).
 
+## Analytics rules: baseline vs. enable-all templates
+
+There are two layers of detections, and it's important to understand the difference:
+
+- **Baseline rules (automatic).** The deployment always creates a small set of **native, script-free** scheduled rules (Entra ID identity detections), gated by the **severity picker** on the Analytics Rules tab and by the connectors you selected. These deploy with zero manual steps and show as **Custom Content** in Analytics.
+- **Enable-all installed templates (one post-deploy step).** Content Hub installs *hundreds* of rule **templates** (e.g. Microsoft Entra ID ships ~74), but a template is inert until it is instantiated. To light up **all installed templates that match your chosen severities** — the behavior of the original v2 tool, where each template then shows **IN USE** — run `Scripts/EnableRules.ps1` once after the deployment.
+
+The original v2 ran this script automatically via an in-template `Microsoft.Resources/deploymentScripts` resource. That resource type provisions a storage account + container instance using **storage account keys**, which many hardened tenants (including Defender-onboarded, policy-strict ones) **block** — so this fork runs the same script **manually** instead. Manual execution uses your own `Connect-AzAccount` sign-in, so there is nothing for the storage-key policy to block.
+
+**How to run it:** after the deployment completes, open the deployment's **Outputs** and copy the `enableAllTemplateRulesCommand` value — it is a ready-to-run command with your chosen severities and connectors already filled in. Then, from the repo root in **Azure Cloud Shell (PowerShell)** or a local `Az`-authenticated PowerShell:
+
+```powershell
+./Scripts/EnableRules.ps1 -ResourceGroup <rg> -Workspace <workspace> -SeveritiesToInclude High,Medium -Connectors AzureActiveDirectory,Office365,AzureActivity
+```
+
+The script enumerates every installed alert-rule template, keeps those whose severity is in `-SeveritiesToInclude`, and creates a rule for each (linked to its template via `alertRuleTemplateName`, which is what stamps the template **IN USE**). It processes both connector-based templates and solution-based templates, so all installed solutions' rules are enabled by severity. Requires **Microsoft Sentinel Contributor** on the workspace.
+
+> Prefer to keep it fully automatic on a permissive tenant? Re-add the v2 `deploymentScripts` wrapper (`ARMTemplates/v2/LinkedTemplates/scheduledAlerts.json` upstream) — but only where `deploymentScripts` and storage account keys are allowed.
+
+
 ## Connecting the workspace to the Defender portal
 
 There is no supported ARM/API to connect a workspace to the Defender portal — it is a portal action, and workspaces onboarded to Sentinel after July 1, 2025 are often connected automatically. `Scripts/Connect-DefenderPortal.ps1` verifies readiness (workspace exists, Sentinel enabled) and prints the remaining portal step and required roles:
