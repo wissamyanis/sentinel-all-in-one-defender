@@ -147,13 +147,19 @@ foreach ($tpl in $templates) {
         continue
     }
 
+    # templateVersion must be X.Y.Z (all numbers). Prefer the content template
+    # version, then the rule's version, then fall back to 1.0.0.
+    $tv = "$version"
+    if ($tv -notmatch '^\d+\.\d+\.\d+$') { $tv = "$($tp.version)" }
+    if ($tv -notmatch '^\d+\.\d+\.\d+$') { $tv = "1.0.0" }
+
     # Build the alertRules body from a whitelist of valid properties (the template
     # carries fields like requiredDataConnectors/status/version that are not valid
     # on an alertRules PUT and would cause 400s).
     $ruleProps = @{
         enabled               = $true
         alertRuleTemplateName = $contentId
-        templateVersion       = "$($tp.version)"
+        templateVersion       = $tv
         displayName           = $tp.displayName
         description           = $tp.description
         severity              = $severity
