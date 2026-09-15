@@ -68,6 +68,7 @@ $workspacePath = "/subscriptions/$SubscriptionId/resourceGroups/$ResourceGroup/p
 $alertRulesBase = "$workspacePath/providers/Microsoft.SecurityInsights/alertRules"
 $templatesApi = "2023-11-01"
 $rulesApi = "2023-02-01"
+$rulesApiNRT = "2023-12-01-preview"
 
 function Invoke-Arm {
     param([string]$Path, [string]$FullUri, [string]$Method = "GET", [string]$Payload)
@@ -190,7 +191,12 @@ foreach ($tpl in $templates) {
     if ($null -ne $tp.query) { $ruleProps["query"] = $tp.query }
     if ($null -ne $tp.tactics) { $ruleProps["tactics"] = $tp.tactics }
     if ($null -ne $tp.techniques) { $ruleProps["techniques"] = $tp.techniques }
-    if ($null -ne $tp.entityMappings) { $ruleProps["entityMappings"] = $tp.entityMappings }
+    if ($null -ne $tp.entityMappings) {
+        # The API allows at most 5 entity mappings; some templates ship more.
+        $em = @($tp.entityMappings)
+        if ($em.Count -gt 5) { $em = $em[0..4] }
+        $ruleProps["entityMappings"] = $em
+    }
     if ($null -ne $tp.eventGroupingSettings) { $ruleProps["eventGroupingSettings"] = $tp.eventGroupingSettings }
     if ($null -ne $tp.customDetails) { $ruleProps["customDetails"] = $tp.customDetails }
     if ($null -ne $tp.alertDetailsOverride) { $ruleProps["alertDetailsOverride"] = $tp.alertDetailsOverride }
@@ -205,7 +211,8 @@ foreach ($tpl in $templates) {
     $body = @{ kind = $kind; properties = $ruleProps }
 
     $guid = [guid]::NewGuid().ToString()
-    $ruleUri = "$alertRulesBase/$guid`?api-version=$rulesApi"
+    $api = if ($kind -eq 'NRT') { $rulesApiNRT } else { $rulesApi }
+    $ruleUri = "$alertRulesBase/$guid`?api-version=$api"
     try {
         $put = Invoke-Arm -Path $ruleUri -Method "PUT" -Payload ($body | ConvertTo-Json -Depth 20)
         if ($put.StatusCode -ge 200 -and $put.StatusCode -lt 300) {
