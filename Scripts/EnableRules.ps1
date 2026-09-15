@@ -29,14 +29,22 @@
 
 .PARAMETER Connectors
     Optional. When supplied, a template is only enabled if at least one of its
-    required data connectors is in this list. Omit to enable every installed
-    template that matches the severity filter (the behaviour most people want).
+    required data connectors (by raw connectorId) is in this list. For most
+    users -DeploymentConnectors is easier (it maps wizard names for you).
+
+.PARAMETER DeploymentConnectors
+    Optional. The connectors the customer selected in the wizard (e.g.
+    AzureActivity, Office365, SecurityEvents, AzureActiveDirectory). A template
+    is only enabled if at least one of its required connectors maps to one of
+    these. Best choice for a FRESH deployment / live demo: it enables the rules
+    for the connectors you turned on without waiting for data to flow. Templates
+    with no required connectors are always allowed.
 
 .PARAMETER OnlyInstalledConnectors
     Only create a rule if at least one of the data tables it requires actually
     has data in the workspace (checked via the Usage table over the last 30
-    days). Rules for connectors you have not installed are skipped cleanly
-    instead of failing with 'table does not exist'. Requires the
+    days). Best on a MATURE workspace with weeks of data - on a fresh deploy no
+    tables have data yet so everything is skipped. Requires the
     Az.OperationalInsights module (present in Azure Cloud Shell).
 
 .PARAMETER WhatIf
@@ -57,6 +65,7 @@ param(
     [Parameter(Mandatory = $true)][string]$Workspace,
     [Parameter(Mandatory = $false)][string[]]$SeveritiesToInclude = @("High", "Medium", "Low", "Informational"),
     [Parameter(Mandatory = $false)][string[]]$Connectors,
+    [Parameter(Mandatory = $false)][string[]]$DeploymentConnectors,
     [Parameter(Mandatory = $false)][switch]$OnlyInstalledConnectors,
     [Parameter(Mandatory = $false)][switch]$WhatIf
 )
@@ -74,6 +83,37 @@ Write-Host "Connected to subscription: $($context.Subscription.Name) ($Subscript
 # Normalize severities for case-insensitive comparison
 $sevSet = @{}
 foreach ($s in $SeveritiesToInclude) { $sevSet[$s.Trim().ToLower()] = $true }
+
+# Map the wizard's connector selections to the template connectorId values they
+# correspond to. Used by -DeploymentConnectors to enable rules for the
+# connectors the customer selected, even on a fresh workspace before data flows.
+$connectorMap = @{
+    "azureactivity"             = @("AzureActivity")
+    "microsoftdefenderforcloud" = @("AzureSecurityCenter")
+    "office365"                 = @("Office365")
+    "securityevents"            = @("SecurityEvents", "WindowsSecurityEvents")
+    "azureactivedirectory"      = @("AzureActiveDirectory", "AzureActiveDirectoryIdentityProtection")
+    "cefviaama"                 = @("CEF", "CommonSecurityLog")
+    "syslogviaama"              = @("Syslog")
+    "dynamics365"               = @("Dynamics365")
+    "officepowerbi"             = @("OfficePowerBI", "PowerBI")
+    "office365project"          = @("Office365Project")
+    "officeirm"                 = @("OfficeIRM", "MicrosoftPurviewInsiderRiskManagement")
+    "threatintelligence"        = @("ThreatIntelligence", "ThreatIntelligenceTaxii")
+}
+$allowedConnectorIds = $null
+if ($DeploymentConnectors) {
+    $allowedConnectorIds = @{}
+    foreach ($c in $DeploymentConnectors) {
+        $key = $c.Trim().ToLower()
+        # Always allow the exact value too, in case a template uses it verbatim.
+        $allowedConnectorIds[$c.Trim().ToLower()] = $true
+        if ($connectorMap.ContainsKey($key)) {
+            foreach ($mapped in $connectorMap[$key]) { $allowedConnectorIds[$mapped.ToLower()] = $true }
+        }
+    }
+    Write-Host ("Gating on selected connectors: {0}" -f ($DeploymentConnectors -join ", ")) -ForegroundColor Cyan
+}
 
 $workspacePath = "/subscriptions/$SubscriptionId/resourceGroups/$ResourceGroup/providers/Microsoft.OperationalInsights/workspaces/$Workspace"
 $alertRulesBase = "$workspacePath/providers/Microsoft.SecurityInsights/alertRules"
@@ -232,6 +272,18 @@ foreach ($tpl in $templates) {
         $match = $false
         foreach ($rdc in $tp.requiredDataConnectors) {
             if ($rdc.connectorId -and ($Connectors -contains $rdc.connectorId)) { $match = $true; break }
+        }
+        if (-not $match) { $skippedConnector++; continue }
+    }
+
+    # Deployment-connector gating: only create if at least one required connector
+    # matches a connector the customer selected in the wizard. Templates with no
+    # required connectors are always allowed. Works on a fresh workspace (no data
+    # required).
+    if ($allowedConnectorIds -and $tp.requiredDataConnectors) {
+        $match = $false
+        foreach ($rdc in $tp.requiredDataConnectors) {
+            if ($rdc.connectorId -and $allowedConnectorIds.ContainsKey(("$($rdc.connectorId)").ToLower())) { $match = $true; break }
         }
         if (-not $match) { $skippedConnector++; continue }
     }
