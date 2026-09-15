@@ -97,8 +97,26 @@ while ($next) {
 
 Write-Host ("Found {0} installed analytics-rule templates." -f $templates.Count) -ForegroundColor Cyan
 
+# Collect templateNames of rules that already exist, so re-runs are idempotent
+# (skip templates that already have an active rule instead of duplicating them).
+Write-Host "Checking for already-enabled rules..." -ForegroundColor Cyan
+$existingTemplateNames = @{}
+$rnext = "$alertRulesBase`?api-version=$rulesApi"
+$rIsRelative = $true
+while ($rnext) {
+    if ($rIsRelative) { $rresp = Invoke-Arm -Path $rnext } else { $rresp = Invoke-Arm -FullUri $rnext }
+    if ($rresp.StatusCode -ne 200) { Write-Warning "Could not list existing rules (HTTP $($rresp.StatusCode)); continuing without dedupe."; break }
+    $rpage = $rresp.Content | ConvertFrom-Json
+    foreach ($r in $rpage.value) {
+        $atn = $r.properties.alertRuleTemplateName
+        if ($atn) { $existingTemplateNames[$atn] = $true }
+    }
+    if ($rpage.nextLink) { $rnext = $rpage.nextLink; $rIsRelative = $false } else { $rnext = $null }
+}
+Write-Host ("  {0} templates already in use (will be skipped)." -f $existingTemplateNames.Count) -ForegroundColor Cyan
+
 $created = 0; $skippedSeverity = 0; $skippedConnector = 0; $skippedKind = 0; $failed = 0
-$noMainTemplate = 0; $noRuleResource = 0
+$noMainTemplate = 0; $noRuleResource = 0; $skippedExisting = 0
 $createdBySeverity = @{ High = 0; Medium = 0; Low = 0; Informational = 0 }
 
 foreach ($tpl in $templates) {
@@ -131,6 +149,9 @@ foreach ($tpl in $templates) {
     $tp = $ruleRes.properties
     $severity = "$($tp.severity)"
     if (-not $severity -or -not $sevSet.ContainsKey($severity.ToLower())) { $skippedSeverity++; continue }
+
+    # Skip templates that already have an active rule (idempotent re-runs)
+    if ($contentId -and $existingTemplateNames.ContainsKey($contentId)) { $skippedExisting++; continue }
 
     # Optional connector gating
     if ($Connectors -and $tp.requiredDataConnectors) {
@@ -211,6 +232,6 @@ else {
     Write-Host "Done. Created $created rules." -ForegroundColor Cyan
 }
 Write-Host ("  By severity: High={0} Medium={1} Low={2} Informational={3}" -f $createdBySeverity.High, $createdBySeverity.Medium, $createdBySeverity.Low, $createdBySeverity.Informational)
-Write-Host ("  Skipped: severity={0} connector={1} kind(non-Scheduled/NRT)={2} noMainTemplate={3} noRuleResource={4}  Failed: {5}" -f $skippedSeverity, $skippedConnector, $skippedKind, $noMainTemplate, $noRuleResource, $failed)
+Write-Host ("  Skipped: severity={0} connector={1} kind(non-Scheduled/NRT)={2} alreadyInUse={3} noMainTemplate={4} noRuleResource={5}  Failed: {6}" -f $skippedSeverity, $skippedConnector, $skippedKind, $skippedExisting, $noMainTemplate, $noRuleResource, $failed)
 Write-Host ""
 Write-Host "Note: some Microsoft templates query tables you may not be ingesting yet; those individual rules can fail and are counted under 'Failed'. That is expected and does not stop the rest."
