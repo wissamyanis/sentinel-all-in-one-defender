@@ -26,10 +26,11 @@ Once a workspace is onboarded to the Defender portal (which is automatic for man
 | Microsoft Defender for Cloud | Sentinel connector | Default. |
 | Office 365 | Sentinel connector | Default. |
 | Windows Security Events (AMA) | Data Collection Rule | Default. Attach AMA to machines to collect. |
-| Microsoft Entra ID (sign-in & audit logs) | Tenant diagnostic settings | Streams SigninLogs/AuditLogs; powers the identity analytics rules. Global Admin required. |
+| Microsoft Entra ID (sign-in & audit logs) | Tenant diagnostic settings | Streams SigninLogs/AuditLogs (choose from 12 log categories in the wizard); powers the identity analytics rules. Global Admin required. |
 | Common Event Format (CEF) / Syslog (AMA) | Data Collection Rule | For firewalls/appliances (e.g. Palo Alto). Attach a Linux forwarder. |
 | Dynamics 365, Power BI, Project, Purview IRM | Sentinel connector | Only if the tenant is licensed. |
-| Microsoft Defender Threat Intelligence / Premium MDTI | Sentinel connector | Requires tenant CFAR onboarding approval. |
+| Threat Intelligence Platforms | Sentinel connector | TAXII/upload indicators. No CFAR needed. |
+| Microsoft Defender Threat Intelligence / Premium MDTI | **Excluded from wizard** | Requires tenant **CFAR onboarding approval**, which ARM cannot grant — a non-approved tenant fails with `Forbidden: tenant is not approved for MicrosoftTi connector onboarding`. Left out of the picker so live deploys stay green. The conditional ARM resources remain in `LinkedTemplates/dataConnectors.json`; a CFAR-approved tenant can enable them by adding `MicrosoftThreatIntelligence` / `PremiumMicrosoftDefenderForThreatIntelligence` to `dataConnectorsKind` manually. |
 
 **Not deployed by this tool (managed by the Defender portal, enabled automatically when the workspace joins Defender):**
 
