@@ -505,44 +505,14 @@
             {
                 "name": "enableScheduledAlerts",
                 "type": "Microsoft.Common.CheckBox",
-                "label": "Enable Scheduled alert rules for selected Content Hub solutions and Data Connectors?",
-                "toolTip": "Select to enable Scheduled and NRT analytics rules for the solutions and connectors selected in the previous tabs",
+                "label": "Enable a curated set of built-in analytics rules (recommended)",
+                "defaultValue": true,
+                "toolTip": "Deploys a curated set of Microsoft incident-creation rules (for the selected Microsoft connectors) plus scheduled KQL detections for Entra ID sign-in/audit activity. These are native ARM rules - no deployment script.",
                 "constraints": {
                     "required": false,
-                    "validationMessage": "Enables Scheduled and NRT rules matching any of the selected solutions and connectors"
+                    "validationMessage": "Deploys the curated analytics rule set"
                 },
                 "visible": true
-            },
-            {
-                "name": "severityLevels",
-                "type": "Microsoft.Common.DropDown",
-                "label": "Select the severity of the rules to enable",
-                "placeholder": "",
-                "multiselect": true,
-                "defaultValue": [{"value": "High"}, {"value": "Medium"}],
-                "toolTip": "Select the data connectors that you would like to enable",
-                "constraints": {
-                    "allowedValues": [
-                        {
-                            "label": "High",
-                            "value": "High"
-                        },
-                        {
-                            "label": "Medium",
-                            "value": "Medium"
-                        },
-                        {
-                            "label": "Low",
-                            "value": "Low"
-                        },
-                        {
-                            "label": "Informational",
-                            "value": "informational"
-                        }
-                    ],
-                    "required": false
-                },
-                "visible": "[if(steps('analyticsRules').enableScheduledAlerts, true, false)]"
             }
         ]
     }
@@ -563,8 +533,7 @@
       "enableDataConnectors": "[steps('dataConnectors').enableDataConnectors]",
       "securityEventSet": "[steps('dataConnectors').securityEventSet]",
       "enableMLAlerts": "[steps('analyticsRules').enableMLAlerts]",
-      "enableScheduledAlerts": "[steps('analyticsRules').enableScheduledAlerts]",
-      "severityLevels": "[steps('analyticsRules').severityLevels]"
+      "enableScheduledAlerts": "[steps('analyticsRules').enableScheduledAlerts]"
     }
   }
 }
