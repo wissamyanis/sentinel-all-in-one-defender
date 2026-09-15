@@ -440,19 +440,9 @@
                             "value": "SyslogViaAMA"
                         },
                         {
-                            "label": "Threat Intelligence Platforms (legacy)",
-                            "description": "Legacy TAXII/Graph threat indicators connector. For new deployments prefer Microsoft Defender Threat Intelligence below. Global Admin or Security Admin permission required",
+                            "label": "Threat Intelligence Platforms",
+                            "description": "TAXII/Graph threat indicators connector. Ingests threat indicators via the TI upload API. Global Admin or Security Admin permission required. (The Microsoft Defender Threat Intelligence feed connectors are intentionally excluded from this wizard because they require tenant CFAR onboarding approval and will fail an ARM deployment on non-approved tenants.)",
                             "value": "ThreatIntelligence"
-                        },
-                        {
-                            "label": "Microsoft Defender Threat Intelligence",
-                            "description": "Ingests the Microsoft emerging threat feed (public indicators) into Sentinel. NOTE: your tenant must be approved (CFAR registration) to onboard this connector, otherwise deployment will fail. Global Admin or Security Admin permission required",
-                            "value": "MicrosoftThreatIntelligence"
-                        },
-                        {
-                            "label": "Premium Microsoft Defender Threat Intelligence",
-                            "description": "Ingests the premium MDTI indicator feed. Requires the MDTI premium license and tenant onboarding approval (CFAR). Global Admin or Security Admin permission required",
-                            "value": "PremiumMicrosoftDefenderForThreatIntelligence"
                         }
                     ],
                     "required": false
