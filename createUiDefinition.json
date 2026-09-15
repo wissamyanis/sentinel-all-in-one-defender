@@ -532,7 +532,7 @@
                 "label": "Analytics rule severities to enable",
                 "placeholder": "",
                 "multiselect": true,
-                "defaultValue": [{"value": "High"}, {"value": "Medium"}, {"value": "Low"}, {"value": "Informational"}],
+                "defaultValue": [{"value": "High"}, {"value": "Medium"}],
                 "toolTip": "Choose which severities of the built-in scheduled (KQL) analytics rules to deploy. A scheduled rule is only created when its severity is selected here. Microsoft incident-creation rules inherit the source alert's severity and are not affected.",
                 "constraints": {
                     "allowedValues": [
