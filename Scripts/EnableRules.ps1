@@ -106,8 +106,8 @@ foreach ($tpl in $templates) {
     $version = $tpl.properties.version
     $main = $tpl.properties.mainTemplate
 
-    # The contentTemplates LIST response usually omits mainTemplate; fetch the
-    # full template by id to get it.
+    # The contentTemplates LIST response omits mainTemplate; fetch the full
+    # template by id to get it.
     if (-not $main -and $tpl.id) {
         $g = Invoke-Arm -Path "$($tpl.id)?api-version=$templatesApi"
         if ($g.StatusCode -eq 200) {
@@ -119,21 +119,23 @@ foreach ($tpl in $templates) {
     }
     if (-not $main) { $noMainTemplate++; continue }
 
-    # Find the alertRule resource inside the template's mainTemplate
-    $ruleRes = $main.resources | Where-Object { $_.type -match 'alertRules$' } | Select-Object -First 1
+    # The rule inside mainTemplate is typed Microsoft.SecurityInsights/AlertRuleTemplates
+    # (not ...alertRules). Match any alert-rule resource, excluding metadata.
+    $ruleRes = $main.resources | Where-Object { $_.type -match '(?i)alertrule' } | Select-Object -First 1
     if (-not $ruleRes) { $noRuleResource++; continue }
 
     $kind = $ruleRes.kind
+    if (-not $kind) { $kind = $ruleRes.properties.kind }
     if ($kind -ne 'Scheduled' -and $kind -ne 'NRT') { $skippedKind++; continue }
 
-    $props = $ruleRes.properties
-    $severity = "$($props.severity)"
+    $tp = $ruleRes.properties
+    $severity = "$($tp.severity)"
     if (-not $severity -or -not $sevSet.ContainsKey($severity.ToLower())) { $skippedSeverity++; continue }
 
     # Optional connector gating
-    if ($Connectors -and $props.requiredDataConnectors) {
+    if ($Connectors -and $tp.requiredDataConnectors) {
         $match = $false
-        foreach ($rdc in $props.requiredDataConnectors) {
+        foreach ($rdc in $tp.requiredDataConnectors) {
             if ($rdc.connectorId -and ($Connectors -contains $rdc.connectorId)) { $match = $true; break }
         }
         if (-not $match) { $skippedConnector++; continue }
@@ -145,15 +147,35 @@ foreach ($tpl in $templates) {
         continue
     }
 
-    # Build the rule body from the template's own rule properties, then force the
-    # fields required to make it an active, template-linked rule.
-    $body = @{ kind = $kind; properties = @{} }
-    foreach ($prop in $props.PSObject.Properties) { $body.properties[$prop.Name] = $prop.Value }
-    $body.properties["enabled"] = $true
-    $body.properties["alertRuleTemplateName"] = $contentId
-    $body.properties["templateVersion"] = $version
-    if (-not $body.properties.ContainsKey("suppressionDuration")) { $body.properties["suppressionDuration"] = "PT5H" }
-    if (-not $body.properties.ContainsKey("suppressionEnabled")) { $body.properties["suppressionEnabled"] = $false }
+    # Build the alertRules body from a whitelist of valid properties (the template
+    # carries fields like requiredDataConnectors/status/version that are not valid
+    # on an alertRules PUT and would cause 400s).
+    $ruleProps = @{
+        enabled               = $true
+        alertRuleTemplateName = $contentId
+        templateVersion       = "$($tp.version)"
+        displayName           = $tp.displayName
+        description           = $tp.description
+        severity              = $severity
+        suppressionDuration   = "PT5H"
+        suppressionEnabled    = $false
+    }
+    if ($null -ne $tp.query) { $ruleProps["query"] = $tp.query }
+    if ($null -ne $tp.tactics) { $ruleProps["tactics"] = $tp.tactics }
+    if ($null -ne $tp.techniques) { $ruleProps["techniques"] = $tp.techniques }
+    if ($null -ne $tp.entityMappings) { $ruleProps["entityMappings"] = $tp.entityMappings }
+    if ($null -ne $tp.eventGroupingSettings) { $ruleProps["eventGroupingSettings"] = $tp.eventGroupingSettings }
+    if ($null -ne $tp.customDetails) { $ruleProps["customDetails"] = $tp.customDetails }
+    if ($null -ne $tp.alertDetailsOverride) { $ruleProps["alertDetailsOverride"] = $tp.alertDetailsOverride }
+    if ($null -ne $tp.incidentConfiguration) { $ruleProps["incidentConfiguration"] = $tp.incidentConfiguration }
+    if ($kind -eq 'Scheduled') {
+        if ($null -ne $tp.queryFrequency) { $ruleProps["queryFrequency"] = $tp.queryFrequency }
+        if ($null -ne $tp.queryPeriod) { $ruleProps["queryPeriod"] = $tp.queryPeriod }
+        if ($null -ne $tp.triggerOperator) { $ruleProps["triggerOperator"] = $tp.triggerOperator }
+        if ($null -ne $tp.triggerThreshold) { $ruleProps["triggerThreshold"] = $tp.triggerThreshold }
+    }
+
+    $body = @{ kind = $kind; properties = $ruleProps }
 
     $guid = [guid]::NewGuid().ToString()
     $ruleUri = "$alertRulesBase/$guid`?api-version=$rulesApi"
@@ -162,16 +184,16 @@ foreach ($tpl in $templates) {
         if ($put.StatusCode -ge 200 -and $put.StatusCode -lt 300) {
             $created++
             if ($createdBySeverity.ContainsKey($severity)) { $createdBySeverity[$severity]++ }
-            Write-Host ("  + [{0}] {1}" -f $severity, $props.displayName) -ForegroundColor Green
+            Write-Host ("  + [{0}] {1}" -f $severity, $tp.displayName) -ForegroundColor Green
         }
         else {
             $failed++
-            Write-Warning ("  ! Failed [{0}] {1} -> HTTP {2}: {3}" -f $severity, $props.displayName, $put.StatusCode, $put.Content)
+            Write-Warning ("  ! Failed [{0}] {1} -> HTTP {2}: {3}" -f $severity, $tp.displayName, $put.StatusCode, $put.Content)
         }
     }
     catch {
         $failed++
-        Write-Warning ("  ! Error [{0}] {1} -> {2}" -f $severity, $props.displayName, $_.Exception.Message)
+        Write-Warning ("  ! Error [{0}] {1} -> {2}" -f $severity, $tp.displayName, $_.Exception.Message)
     }
 }
 
