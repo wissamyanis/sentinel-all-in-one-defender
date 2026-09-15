@@ -71,11 +71,44 @@ $rulesApi = "2023-02-01"
 $rulesApiNRT = "2023-12-01-preview"
 
 function Invoke-Arm {
-    param([string]$Path, [string]$FullUri, [string]$Method = "GET", [string]$Payload)
-    $params = @{ Method = $Method }
-    if ($FullUri) { $params["Uri"] = $FullUri } else { $params["Path"] = $Path }
-    if ($Payload) { $params["Payload"] = $Payload }
-    return Invoke-AzRestMethod @params
+    param(
+        [string]$Path,
+        [string]$FullUri,
+        [string]$Method = "GET",
+        [string]$Payload,
+        [int]$MaxRetries = 5
+    )
+    $attempt = 0
+    while ($true) {
+        $attempt++
+        try {
+            $params = @{ Method = $Method }
+            if ($FullUri) { $params["Uri"] = $FullUri } else { $params["Path"] = $Path }
+            if ($Payload) { $params["Payload"] = $Payload }
+            $resp = Invoke-AzRestMethod @params -ErrorAction Stop
+
+            # Retry transient throttling / server errors with backoff
+            if (($resp.StatusCode -eq 429 -or $resp.StatusCode -ge 500) -and $attempt -le $MaxRetries) {
+                $wait = [math]::Min(60, [math]::Pow(2, $attempt))
+                Write-Host ("    (transient HTTP {0}; retry {1}/{2} in {3}s)" -f $resp.StatusCode, $attempt, $MaxRetries, $wait) -ForegroundColor DarkYellow
+                Start-Sleep -Seconds $wait
+                continue
+            }
+            return $resp
+        }
+        catch {
+            # Network/timeout/token exceptions: retry a few times, then return a
+            # synthetic failure response so callers never throw and the run
+            # continues to the next item.
+            if ($attempt -le $MaxRetries) {
+                $wait = [math]::Min(60, [math]::Pow(2, $attempt))
+                Write-Host ("    (request error: {0}; retry {1}/{2} in {3}s)" -f $_.Exception.Message, $attempt, $MaxRetries, $wait) -ForegroundColor DarkYellow
+                Start-Sleep -Seconds $wait
+                continue
+            }
+            return [pscustomobject]@{ StatusCode = 0; Content = "$($_.Exception.Message)" }
+        }
+    }
 }
 
 Write-Host "Enumerating installed analytics-rule templates (contentTemplates)..." -ForegroundColor Cyan
@@ -91,7 +124,8 @@ while ($next) {
         Write-Warning "contentTemplates request returned HTTP $($resp.StatusCode): $($resp.Content)"
         break
     }
-    $page = $resp.Content | ConvertFrom-Json
+    $page = $null
+    try { $page = $resp.Content | ConvertFrom-Json } catch { Write-Warning "Could not parse contentTemplates page; stopping enumeration."; break }
     if ($page.value) { foreach ($v in $page.value) { $templates.Add($v) } }
     if ($page.nextLink) { $next = $page.nextLink; $isRelative = $false } else { $next = $null }
 }
@@ -107,7 +141,8 @@ $rIsRelative = $true
 while ($rnext) {
     if ($rIsRelative) { $rresp = Invoke-Arm -Path $rnext } else { $rresp = Invoke-Arm -FullUri $rnext }
     if ($rresp.StatusCode -ne 200) { Write-Warning "Could not list existing rules (HTTP $($rresp.StatusCode)); continuing without dedupe."; break }
-    $rpage = $rresp.Content | ConvertFrom-Json
+    $rpage = $null
+    try { $rpage = $rresp.Content | ConvertFrom-Json } catch { Write-Warning "Could not parse existing-rules page; continuing without full dedupe."; break }
     foreach ($r in $rpage.value) {
         $atn = $r.properties.alertRuleTemplateName
         if ($atn) { $existingTemplateNames[$atn] = $true }
@@ -130,10 +165,13 @@ foreach ($tpl in $templates) {
     if (-not $main -and $tpl.id) {
         $g = Invoke-Arm -Path "$($tpl.id)?api-version=$templatesApi"
         if ($g.StatusCode -eq 200) {
-            $full = $g.Content | ConvertFrom-Json
-            $main = $full.properties.mainTemplate
-            if (-not $version) { $version = $full.properties.version }
-            if (-not $contentId) { $contentId = $full.properties.contentId }
+            try {
+                $full = $g.Content | ConvertFrom-Json
+                $main = $full.properties.mainTemplate
+                if (-not $version) { $version = $full.properties.version }
+                if (-not $contentId) { $contentId = $full.properties.contentId }
+            }
+            catch { $main = $null }
         }
     }
     if (-not $main) { $noMainTemplate++; continue }
