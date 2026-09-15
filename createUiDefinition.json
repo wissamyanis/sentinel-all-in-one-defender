@@ -180,15 +180,16 @@
                 "label": "Select which Identity Providers will be synchronized with UEBA",
                 "placeholder": "Choose identity provider",
                 "multiselect": true,
-                "toolTip": "Select the identity providers that you would like to enable for UEBA",
+                "defaultValue": [{"value": "AzureActiveDirectory"}],
+                "toolTip": "Microsoft Entra ID works on any tenant. On-prem Active Directory only syncs if Microsoft Defender for Identity (MDI) is connected - selecting it without MDI has no effect.",
                 "constraints": {
                     "allowedValues": [
                         {
-                            "label": "Azure Active Directory",
+                            "label": "Microsoft Entra ID",
                             "value": "AzureActiveDirectory"
                         },
                         {
-                            "label": "Active Directory (requires Microsoft Defender for Identity)",
+                            "label": "On-prem Active Directory (only works if Microsoft Defender for Identity is connected)",
                             "value": "ActiveDirectory"
                         }
                     ],
