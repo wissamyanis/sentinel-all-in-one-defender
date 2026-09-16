@@ -442,7 +442,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "[uri(parameters('_artifactsLocation'), 'LinkedTemplates/autoEnableRules.json')]",
+                    "uri": "[uri(parameters('_artifactsLocation'), 'LinkedTemplates/autoEnableRulesRunbook.json')]",
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
@@ -458,8 +458,8 @@
                     "deploymentConnectors": {
                         "value": "[parameters('enableDataConnectors')]"
                     },
-                    "scriptUri": {
-                        "value": "[uri(parameters('_artifactsLocation'), 'Scripts/EnableRules.ps1')]"
+                    "runbookUri": {
+                        "value": "[uri(parameters('_artifactsLocation'), 'Scripts/EnableRulesRunbook.ps1')]"
                     }
                 }
             }

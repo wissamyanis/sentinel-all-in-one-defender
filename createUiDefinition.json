@@ -548,8 +548,8 @@
             {
                 "name": "autoEnableRules",
                 "type": "Microsoft.Common.CheckBox",
-                "label": "Automatically enable ALL matching rule templates during deployment",
-                "toolTip": "When checked, the deployment runs a script (Microsoft.Resources/deploymentScripts) that instantiates every installed rule template matching your selected severities and connectors - no manual post-deployment step. IMPORTANT: this requires the tenant to allow deploymentScripts and storage account keys. On policy-strict or Defender-onboarded tenants that block them, leave this UNCHECKED and instead run the command from the deployment Outputs tab in Cloud Shell.",
+                "label": "Automatically enable ALL matching rule templates after deployment",
+                "toolTip": "When checked, the deployment creates a small Azure Automation Account with a managed identity that runs a runbook to instantiate every installed rule template matching your selected severities and connectors - no manual step. This uses Azure Automation (managed sandbox), NOT deploymentScripts, so it works on tenants that block storage account keys. The rules appear a few minutes after the deployment completes (the runbook runs asynchronously). Requires the Microsoft.Automation resource provider to be allowed in the tenant.",
                 "constraints": {
                     "required": false
                 },
